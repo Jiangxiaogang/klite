@@ -85,9 +85,10 @@ int			ksem_getvalue(ksem_t sem);
 /******************************************************************************
 * alias
 ******************************************************************************/
+/*
 #define 	malloc	kmem_alloc
 #define		free	kmem_free
 #define		sleep	kthread_sleep
 #define		clock	kernel_time
-
+*/
 #endif

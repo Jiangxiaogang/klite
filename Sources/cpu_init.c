@@ -1,5 +1,5 @@
 /******************************************************************************
-* lowlevel cpu init functions
+* lowlevel cpu arch functions
 * Copyright (C) 2015-2016 jiangxiaogang <kerndev@foxmail.com>
 *
 * This file is part of klite.
@@ -22,7 +22,6 @@
 
 #define CPU_FREQ_MHZ 168
 
-//called by startup.s
 void cpu_init(void)
 {
 	RCC_HSICmd(ENABLE);
@@ -54,14 +53,12 @@ void cpu_init(void)
 	#endif
 }
 
-//called by kernel_start()
 void cpu_core_init(void)
 {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
 	NVIC_SetPriority(PendSV_IRQn, 255);
 }
 
-//called by kernel_start()
 void cpu_tick_init(void)
 {
 	SysTick_Config(CPU_FREQ_MHZ*1000);
