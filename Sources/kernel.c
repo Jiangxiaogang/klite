@@ -18,12 +18,13 @@
 * License along with klite; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 ******************************************************************************/
+#include "cc.h"
 #include "kernel.h"
 #include "internal.h"
 #include "list.h"
 #include "cpu.h"
 
-#define KERNEL_VERSION_CODE	0x02010002
+#define KERNEL_VERSION_CODE	0x02010003
 
 #define MEMORY_ALIGN		4
 #define THREAD_PRIORITY_MAX	127
@@ -42,16 +43,30 @@ static struct tcb_list kern_list_sleep;
 static uint32_t kern_tick_count;
 static uint32_t kern_lock_level;
 
-#define LOCK_LEVEL_NONE		0
-#define LOCK_LEVEL_PREEMPT	1
-#define LOCK_LEVEL_ALL		2
+#define LOCK_LEVEL_PREEMPT	0x0001
+#define LOCK_LEVEL_TICK		0x0100
+#define LOCK_LEVEL_ALL		0x0101
 
-#define kernel_lock(x)		{cpu_irq_disable();kern_lock_level = (x);cpu_irq_enable();}
-#define kernel_unlock()		{cpu_irq_disable();kern_lock_level =0;cpu_irq_enable();}
-
+#define LOCK_MASK_PREEMPT	0x00FF
+#define LOCK_MASK_TICK		0xFF00
 /******************************************************************************
 * kernel helper
 ******************************************************************************/
+static __inline void kernel_lock(uint32_t level)
+{
+	cpu_irq_disable();
+	kern_lock_level += level;
+	cpu_irq_enable();
+}
+
+static __inline void kernel_unlock(uint32_t level)
+{
+	cpu_irq_disable();
+	kern_lock_level -= level;
+	cpu_irq_enable();
+}
+
+
 //线程链表结点已按优先级从高至低排好序,表头为最高优先级
 static __inline void 
 list_insert_order_by_prio(struct tcb_list* list, struct tcb_node* node)
@@ -85,7 +100,7 @@ static void ksched_switch_next(void)
 	cpu_irq_enable();
 }
 
-static void ksched_tick(void)
+static __inline void ksched_tick(void)
 {
 	struct tcb* tcb;
 	struct tcb_node* next;
@@ -108,7 +123,7 @@ static void ksched_tick(void)
 	}
 }
 
-static void ksched_preempt(void)
+static __inline void ksched_preempt(void)
 {
 	struct tcb_node* node;
 	if(kern_tcb_now == NULL)
@@ -137,7 +152,7 @@ static void ksched_preempt(void)
 /******************************************************************************
 * kernel memory management
 ******************************************************************************/
-void kmem_init(uint32_t addr, uint32_t size)
+static void kmem_init(uint32_t addr, uint32_t size)
 {
 	uint32_t start;
 	uint32_t end;
@@ -180,7 +195,7 @@ void* kmem_alloc(uint32_t size)
 			break;
 		}
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_PREEMPT);
 	return ret;
 }
 
@@ -202,7 +217,7 @@ void kmem_free(void* mem)
 		}
 		prev = find;
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_PREEMPT);
 }
 
 void kmem_info(uint32_t* total, uint32_t* used)
@@ -216,7 +231,7 @@ void kmem_info(uint32_t* total, uint32_t* used)
 	{
 		*used += mcb->used;
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_PREEMPT);
 }
 
 /******************************************************************************
@@ -236,16 +251,16 @@ void kernel_init(uint32_t mem_addr, uint32_t mem_size)
 	kern_tcb_now = NULL;
 	kern_tcb_new = NULL;
 	kern_tick_count=0;
-	kern_lock_level=LOCK_LEVEL_NONE;
+	kern_lock_level=0;
+	cpu_core_init();
 	list_init(&kern_list_ready);
 	list_init(&kern_list_sleep);
 	kmem_init(mem_addr,mem_size);
-	kthread_create(kernel_idle_main,0,0x200);
+	kthread_create(kernel_idle_main,0,0);
 }
 
 void kernel_start(void)
 {
-	cpu_core_init();
 	cpu_tick_init();
 	ksched_switch_next();
 	cpu_idle();
@@ -265,11 +280,11 @@ void kernel_tick(void)
 {	
 	kern_tick_count++;
 	
-	if(kern_lock_level < LOCK_LEVEL_ALL)
+	if((kern_lock_level & LOCK_MASK_TICK) == 0)
 	{
 		ksched_tick();
 	}
-	if(kern_lock_level < LOCK_LEVEL_PREEMPT)
+	if((kern_lock_level & LOCK_MASK_PREEMPT) == 0)
 	{
 		ksched_preempt();
 	}
@@ -294,16 +309,16 @@ kthread_t kthread_create(void(*func)(void*),void* arg,uint32_t stk_size)
 		tcb->sleep = 0;
 		tcb->lwait = NULL;
 		tcb->nwait = (void*)(tcb+1);
+		tcb->nwait->tcb  = tcb;
 		tcb->nsched= (void*)(tcb->nwait+1);
 		tcb->nsched->tcb = tcb;
-		tcb->nwait->tcb  = tcb;
 		sp_min = (uint32_t)(tcb->nsched+1);
 		sp_max = sp_min+stk_size;
 		cpu_tcb_init(tcb,sp_min,sp_max);
 		
 		kernel_lock(LOCK_LEVEL_ALL);
 		list_append(&kern_list_ready,tcb->nsched);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 	}
 	return (kthread_t)tcb;
 }
@@ -319,31 +334,32 @@ void kthread_destroy(kthread_t thread)
 			kernel_lock(LOCK_LEVEL_ALL);
 			list_remove(tcb->lwait, tcb->nwait);
 			list_remove(&kern_list_sleep, tcb->nsched);
-			kernel_unlock();
+			kernel_unlock(LOCK_LEVEL_ALL);
 			kmem_free(tcb);
 			break;
 		case TCB_STATE_WAIT:
 			kernel_lock(LOCK_LEVEL_ALL);
 			list_remove(tcb->lwait, tcb->nwait);
-			kernel_unlock();
+			kernel_unlock(LOCK_LEVEL_ALL);
 			kmem_free(tcb);
 			break;
 		case TCB_STATE_SLEEP:
 			kernel_lock(LOCK_LEVEL_ALL);
 			list_remove(&kern_list_sleep, tcb->nsched);
-			kernel_unlock();
+			kernel_unlock(LOCK_LEVEL_ALL);
 			kmem_free(tcb);
 			break;
 		case TCB_STATE_READY:
 			kernel_lock(LOCK_LEVEL_ALL);
 			list_remove(&kern_list_ready, tcb->nsched);
-			kernel_unlock();
+			kernel_unlock(LOCK_LEVEL_ALL);
 			kmem_free(tcb);
 			break;
 		case TCB_STATE_RUNNING:
-			cpu_irq_disable();
+			kernel_lock(LOCK_LEVEL_ALL);
 			kmem_free(tcb);
 			kern_tcb_now = NULL;
+			kernel_unlock(LOCK_LEVEL_ALL);
 			ksched_switch_next();
 			break;
 		default:
@@ -364,7 +380,7 @@ void kthread_setprio(kthread_t thread, int prio)
 		kernel_lock(LOCK_LEVEL_ALL);
 		list_remove(&kern_list_ready, tcb->nsched);
 		list_insert_order_by_prio(&kern_list_ready,tcb->nsched);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 	}
 }
 
@@ -393,7 +409,7 @@ void kthread_sleep(uint32_t ms)
 		kern_tcb_now->state = TCB_STATE_SLEEP;
 		kernel_lock(LOCK_LEVEL_ALL);
 		list_append(&kern_list_sleep,kern_tcb_now->nsched);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		ksched_switch_next();
 	}
 }
@@ -428,14 +444,14 @@ void kmutex_lock(kmutex_t mutex)
 	if(obj->data == 0)
 	{
 		obj->data = 1;
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 	}
 	else
 	{
 		kern_tcb_now->state = TCB_STATE_WAIT;
 		kern_tcb_now->lwait = (struct tcb_list*)obj;
 		list_insert_order_by_prio((struct tcb_list*)obj, kern_tcb_now->nwait);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		ksched_switch_next();
 	}
 }
@@ -459,7 +475,7 @@ void kmutex_unlock(kmutex_t mutex)
 	{
 		obj->data = 0;
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_ALL);
 }
 
 
@@ -490,14 +506,14 @@ void kevent_wait(kevent_t event)
 	if(obj->data != 0)
 	{
 		obj->data = 0;
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 	}
 	else
 	{
 		kern_tcb_now->lwait = (struct tcb_list*)obj;
 		kern_tcb_now->state = TCB_STATE_WAIT;
 		list_append(obj, kern_tcb_now->nwait);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		ksched_switch_next();
 	}
 }
@@ -511,7 +527,7 @@ int kevent_timedwait(kevent_t event, uint32_t timeout)
 	if(obj->data != 0)
 	{
 		obj->data = 0;
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		return 1;
 	}
 	else if(timeout != 0)
@@ -521,11 +537,11 @@ int kevent_timedwait(kevent_t event, uint32_t timeout)
 		kern_tcb_now->lwait = (struct tcb_list*)obj;
 		list_append(&kern_list_sleep, kern_tcb_now->nsched);
 		list_append(obj, kern_tcb_now->nwait);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		ksched_switch_next();
 		return (kern_tcb_now->sleep != 0);
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_ALL);
 	return 0;
 }
 
@@ -556,7 +572,7 @@ void kevent_post(kevent_t event)
 	{
 		obj->data = 1;
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_ALL);
 }
 
 ksem_t ksem_create(int value)
@@ -586,14 +602,14 @@ void ksem_wait(ksem_t sem)
 	if(obj->data != 0)
 	{
 		obj->data--;
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 	}
 	else
 	{
 		kern_tcb_now->state = TCB_STATE_WAIT;
 		kern_tcb_now->lwait = (struct tcb_list*)obj;
 		list_insert_order_by_prio((struct tcb_list*)obj, kern_tcb_now->nwait);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		ksched_switch_next();
 	}
 }
@@ -607,7 +623,7 @@ int ksem_timedwait(ksem_t sem, uint32_t timeout)
 	if(obj->data != 0)
 	{
 		obj->data--;
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		return 1;
 	}
 	else if(timeout != 0)
@@ -617,11 +633,11 @@ int ksem_timedwait(ksem_t sem, uint32_t timeout)
 		kern_tcb_now->lwait = (struct tcb_list*)obj;
 		list_insert_order_by_prio((struct tcb_list*)obj, kern_tcb_now->nwait);
 		list_append(&kern_list_sleep, kern_tcb_now->nsched);
-		kernel_unlock();
+		kernel_unlock(LOCK_LEVEL_ALL);
 		ksched_switch_next();
 		return (kern_tcb_now->sleep != 0);
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_ALL);
 	return 0;
 }
 
@@ -648,7 +664,7 @@ void ksem_post(ksem_t sem)
 	{
 		obj->data++;
 	}
-	kernel_unlock();
+	kernel_unlock(LOCK_LEVEL_ALL);
 }
 
 int ksem_getvalue(ksem_t sem)

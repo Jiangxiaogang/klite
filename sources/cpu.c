@@ -64,3 +64,8 @@ void cpu_tick_init(void)
 	SysTick_Config(CPU_FREQ_MHZ*1000);
 	NVIC_SetPriority(SysTick_IRQn, 255);
 }
+
+void cpu_idle(void)
+{
+	
+}

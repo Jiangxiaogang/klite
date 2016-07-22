@@ -1,5 +1,5 @@
 /******************************************************************************
-* lowlevel cpu arch functions of Cortex-M4
+* lowlevel cpu arch functions of Cortex-M3
 * Copyright (C) 2015-2016 jiangxiaogang <kerndev@foxmail.com>
 *
 * This file is part of klite.
@@ -22,6 +22,11 @@
 #include "internal.h"
 #include "cpu.h"
 
+#define TCB_OFFSET_STATE		(0)
+#define TCB_OFFSET_SP			(4)
+#define NVIC_INT_CTRL   		(*((volatile uint32_t*)0xE000ED04))
+#define PEND_INT_SET			(1<<28)
+
 __asm void cpu_irq_disable(void)
 {
     CPSID   I
@@ -36,40 +41,27 @@ __asm void cpu_irq_enable(void)
 	ALIGN
 }
 
-__asm void cpu_idle(void)
-{
-	;WFI
-	BX		LR
-	ALIGN
-}
-
 void cpu_tcb_init(struct tcb* tcb, uint32_t sp_min, uint32_t sp_max)
 {
 	tcb->sp = (uint32_t*)(sp_max & 0xFFFFFFF8);	//
-	//AUTO CORE
-	*(--tcb->sp) = 0x01000000;         		// xPSR(Cortex-M3 say:xPSR bit24=1)
-	*(--tcb->sp) = (uint32_t)tcb->main;		// PC
-	*(--tcb->sp) = (uint32_t)kthread_exit;  // R14(LR)
-	*(--tcb->sp) = 0;         				// R12
-	*(--tcb->sp) = 0;         				// R3
-	*(--tcb->sp) = 0;         				// R2
-	*(--tcb->sp) = 0;         				// R1
-	*(--tcb->sp) = (uint32_t)tcb->arg;  	// R0
-	
-	//CORE
-	*(--tcb->sp) = 0xFFFFFFF9;         		// LR(EXC_RETURN)
-	*(--tcb->sp) = 0;         				// R11
-	*(--tcb->sp) = 0;         				// R10
-	*(--tcb->sp) = 0;         				// R9
-	*(--tcb->sp) = 0;         				// R8
-	*(--tcb->sp) = 0;         				// R7
-	*(--tcb->sp) = 0;         				// R6
-	*(--tcb->sp) = 0;         				// R5
-	*(--tcb->sp) = 0;         				// R4
+	*(--tcb->sp) = 0x01000000;         			// xPSR
+	*(--tcb->sp) = (uint32_t)tcb->main;			// PC
+	*(--tcb->sp) = (uint32_t)kthread_exit; 		// R14
+	*(--tcb->sp) = 0;         					// R12
+	*(--tcb->sp) = 0;         					// R3
+	*(--tcb->sp) = 0;         					// R2
+	*(--tcb->sp) = 0;         					// R1
+	*(--tcb->sp) = (uint32_t)tcb->arg;  		// R0
+	*(--tcb->sp) = 0;         					// R11
+	*(--tcb->sp) = 0;         					// R10
+	*(--tcb->sp) = 0;         					// R9
+	*(--tcb->sp) = 0;         					// R8
+	*(--tcb->sp) = 0;         					// R7
+	*(--tcb->sp) = 0;         					// R6
+	*(--tcb->sp) = 0;         					// R5
+	*(--tcb->sp) = 0;         					// R4
 }
 
-#define NVIC_INT_CTRL   (*((volatile uint32_t*)0xE000ED04))
-#define PEND_INT_SET	(1<<28)
 
 void cpu_tcb_switch(void)
 {
@@ -80,26 +72,22 @@ __asm void PendSV_Handler(void)
 {
 	PRESERVE8
     CPSID   I
+
     LDR     R0, =__cpp(&kern_tcb_now)
 	LDR     R1, [R0]
-	CBZ     R1, POPSTK
-
-	TST     LR,#0x10					;CHECK FPU
-	VPUSHEQ	{S16-S31}
-    PUSH    {LR,R4-R11}
+	CBZ     R1, POPSTACK
+    PUSH    {R4-R11}
     STR     SP, [R1,#TCB_OFFSET_SP]
 
-POPSTK
+POPSTACK
     LDR     R2, =__cpp(&kern_tcb_new)
 	LDR     R3, [R2]
     STR     R3, [R0]
-	MOV		R0, #0						;TCB_STAT_RUNNING
+	MOV		R0, #0						;TCB_RUNNING
 	STR		R0, [R3,#TCB_OFFSET_STATE]
-	
     LDR     SP, [R3,#TCB_OFFSET_SP]
-    POP     {LR,R4-R11}
-	TST     LR,#0x10
-	VPOPEQ	{S16-S31}
+    POP     {R4-R11}
+    
     CPSIE   I
     BX      LR
 	ALIGN

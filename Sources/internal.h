@@ -32,9 +32,6 @@ enum
 	TCB_STATE_EXIT,
 };
 
-#define TCB_OFFSET_STATE		(0)
-#define TCB_OFFSET_SP			(4)
-
 struct tcb
 {
 	uint32_t state;
