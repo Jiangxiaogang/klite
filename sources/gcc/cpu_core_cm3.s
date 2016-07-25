@@ -18,69 +18,92 @@
 * License along with klite; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 ******************************************************************************/
-	#define TCB_OFFSET_STATE		(0)
-	#define TCB_OFFSET_SP			(4)
-	#define TCB_OFFSET_MAIN			(8)
-	#define TCB_OFFSET_ARG			(12)
-	#define NVIC_INT_CTRL   		(0xE000ED04)
-	#define PEND_INT_SET			(1<<28)
+	.syntax unified
 	
-	EXTERN	kern_tcb_now
-	EXTERN	kern_tcb_new
-	EXTERN	kernel_tick
-	EXTERN	kthread_exit
+	.equ TCB_OFFSET_STATE,	0
+	.equ TCB_OFFSET_SP,	   	4
+	.equ TCB_OFFSET_MAIN,	8
+	.equ TCB_OFFSET_ARG,	12
+	.equ NVIC_INT_CTRL,   	(0xE000ED04)
+	.equ PEND_INT_SET,		(1<<28)
 	
-	PUBLIC cpu_irq_enable
-	PUBLIC cpu_irq_disable
-	PUBLIC cpu_tcb_switch
-	PUBLIC cpu_tcb_init
-	PUBLIC PendSV_Handler
-	PUBLIC SysTick_Handler
+	.extern	kern_tcb_now
+	.extern	kern_tcb_new
+	.extern	kernel_tick
+	.extern	kthread_exit
 	
-	SECTION .text:CODE:NOROOT(4)
+	.global cpu_irq_enable
+	.global cpu_irq_disable
+	.global cpu_tcb_switch
+	.global cpu_tcb_init
+	.global PendSV_Handler
+	.global SysTick_Handler
+	
+	.thumb
+	.section ".text"
+	.align  2
 	
 cpu_irq_disable:
+	.fnstart
+	.cantunwind
 	CPSID 	I
 	BX		LR
+	.fnend
 	
 cpu_irq_enable:
+	.fnstart
+	.cantunwind
 	CPSIE 	I
 	BX		LR
+	.fnend
 	
 cpu_tcb_switch:
+	.fnstart
+	.cantunwind
 	LDR		R0,=NVIC_INT_CTRL
 	LDR		R1,=PEND_INT_SET
 	STR		R1,[R0]
 	BX		LR
+	.fnend
 
 PendSV_Handler:
+	.fnstart
+	.cantunwind
     CPSID   I
     LDR     R0, =kern_tcb_now
 	LDR     R1, [R0]
 	CBZ     R1, POPSTACK
     PUSH    {R4-R11}
     STR     SP, [R1,#TCB_OFFSET_SP]
-POPSTACK
+POPSTACK:
     LDR     R2, =kern_tcb_new
 	LDR     R3, [R2]
     STR     R3, [R0]
-	MOV		R0, #0						;TCB_STAT_RUNNING
+	MOV		R0, #0						//TCB_STAT_RUNNING
 	STR		R0, [R3,#TCB_OFFSET_STATE]
     LDR     SP, [R3,#TCB_OFFSET_SP]
     POP     {R4-R11}
     
     CPSIE   I
     BX      LR
+	.fnend
+	
 	
 SysTick_Handler:
+	.fnstart
+	.cantunwind
 	PUSH    {LR}
 	LDR		R0, =kernel_tick
 	BLX		R0
 	POP		{LR}
 	BX		LR
+	.fnend
+
 	
 //void cpu_tcb_init(struct tcb* tcb, uint32_t sp_min, uint32_t sp_max)
 cpu_tcb_init:
+	.fnstart
+	.cantunwind
 	PUSH    {R12}
 	LSR		R12,R2,#+3
     LSL    	R12,R12,#+3
@@ -120,6 +143,7 @@ cpu_tcb_init:
 	STR     R12,[R0, #TCB_OFFSET_SP]
 	POP     {R12}
 	BX		LR
+	.fnend
 	
-	END
+	.end
 	
