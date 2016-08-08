@@ -22,6 +22,8 @@
 
 #define CPU_FREQ_MHZ 168
 
+//初始化目标CPU的系统时钟
+//必须在kernel_init()之前手动调用,建议放在startup.s执行
 void cpu_init(void)
 {
 	RCC_HSICmd(ENABLE);
@@ -53,18 +55,23 @@ void cpu_init(void)
 	#endif
 }
 
+//初始化NVIC
+//由kernel_init()函数内部调用
 void cpu_core_init(void)
 {
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
 	NVIC_SetPriority(PendSV_IRQn, 255);
 }
 
+//初始化SYSTICK定时器
+//由kernel_start()函数内部调用
 void cpu_tick_init(void)
 {
 	SysTick_Config(CPU_FREQ_MHZ*1000);
 	NVIC_SetPriority(SysTick_IRQn, 255);
 }
 
+//kernel空闲时调用
 void cpu_idle(void)
 {
 	
