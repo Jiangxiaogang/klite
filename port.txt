@@ -62,7 +62,7 @@ void cpu_tcb_switch(void)
   对于cpu.c的修改，请参照前面的“普通移植”即可。
   
 
-三.广告
-  如果你完成了一项完全移植，非常希望你能提交到http://git.oschina.net/kerndev/klite.git
-  如果你对KLite感兴趣，请加入QQ群:317930646
+三.开源
+  如果你完成了一项完全移植，非常希望你能提交到我的码云git
+
 

@@ -1,5 +1,5 @@
 /******************************************************************************
-* lowlevel cpu arch functions of Cortex-M4
+* lowlevel cpu arch functions of Cortex-M0
 * Copyright (C) 2015-2016 jiangxiaogang <kerndev@foxmail.com>
 *
 * This file is part of klite.
@@ -41,61 +41,67 @@ __asm void cpu_irq_enable(void)
 	ALIGN
 }
 
-
 void cpu_tcb_init(struct tcb* tcb, uint32_t sp_min, uint32_t sp_max)
 {
 	tcb->sp = (uint32_t*)(sp_max & 0xFFFFFFF8);	//
-	//自动入栈
-	*(--tcb->sp) = 0x01000000;         		// xPSR(Cortex-M3 say:xPSR bit24=1)
-	*(--tcb->sp) = (uint32_t)tcb->main;		// PC
-	*(--tcb->sp) = (uint32_t)kthread_exit;  // R14(LR)
-	*(--tcb->sp) = 0;         				// R12
-	*(--tcb->sp) = 0;         				// R3
-	*(--tcb->sp) = 0;         				// R2
-	*(--tcb->sp) = 0;         				// R1
-	*(--tcb->sp) = (uint32_t)tcb->arg;  	// R0
-	
-	//手动入栈
-	*(--tcb->sp) = 0xFFFFFFF9;         		// LR(EXC_RETURN)
-	*(--tcb->sp) = 0;         				// R11
-	*(--tcb->sp) = 0;         				// R10
-	*(--tcb->sp) = 0;         				// R9
-	*(--tcb->sp) = 0;         				// R8
-	*(--tcb->sp) = 0;         				// R7
-	*(--tcb->sp) = 0;         				// R6
-	*(--tcb->sp) = 0;         				// R5
-	*(--tcb->sp) = 0;         				// R4
+	*(--tcb->sp) = 0x01000000;         			// xPSR
+	*(--tcb->sp) = (uint32_t)tcb->main;			// PC
+	*(--tcb->sp) = (uint32_t)kthread_exit; 		// LR
+	*(--tcb->sp) = 0;         					// R12
+	*(--tcb->sp) = 0;         					// R3
+	*(--tcb->sp) = 0;         					// R2
+	*(--tcb->sp) = 0;         					// R1
+	*(--tcb->sp) = (uint32_t)tcb->arg;  		// R0
+	*(--tcb->sp) = 0;         					// R7
+	*(--tcb->sp) = 0;         					// R6
+	*(--tcb->sp) = 0;         					// R5
+	*(--tcb->sp) = 0;         					// R4
+	*(--tcb->sp) = 0;         					// R11
+	*(--tcb->sp) = 0;         					// R10
+	*(--tcb->sp) = 0;         					// R9
+	*(--tcb->sp) = 0;         					// R8
 }
+
 
 void cpu_tcb_switch(void)
 {
 	NVIC_INT_CTRL = PEND_INT_SET;
 }
 
+//CM0 ARMv6 Thumb指令集
 __asm void PendSV_Handler(void)
 {
 	PRESERVE8
     CPSID   I
+
     LDR     R0, =__cpp(&kern_tcb_now)
 	LDR     R1, [R0]
-	CBZ     R1, POPSTK
+	CMP		R1, #0
+	BEQ     POPSTACK
+    PUSH    {R4-R7}						;R8-R11不能直接入栈
+	MOV     R4,R8
+	MOV     R5,R9
+	MOV     R6,R10
+	MOV     R7,R11
+	PUSH    {R4-R7}
+	MOV		R2,SP
+    STR     R2, [R1,#TCB_OFFSET_SP]
 
-	TST     LR,#0x10					;CHECK FPU
-	VPUSHEQ	{S16-S31}
-    PUSH    {LR,R4-R11}
-    STR     SP, [R1,#TCB_OFFSET_SP]
-
-POPSTK
+POPSTACK
     LDR     R2, =__cpp(&kern_tcb_new)
 	LDR     R3, [R2]
     STR     R3, [R0]
-	MOV		R0, #0						;TCB_STAT_RUNNING
+	MOVS	R0, #0						;TCB_RUNNING
 	STR		R0, [R3,#TCB_OFFSET_STATE]
+    LDR     R0, [R3,#TCB_OFFSET_SP]
+	MOV     SP, R0
+    POP     {R4-R7}
+    MOV     R8,R4
+	MOV     R9,R5
+	MOV     R10,R6
+	MOV     R11,R7
+	POP		{R4-R7}
 	
-    LDR     SP, [R3,#TCB_OFFSET_SP]
-    POP     {LR,R4-R11}
-	TST     LR,#0x10
-	VPOPEQ	{S16-S31}
     CPSIE   I
     BX      LR
 	ALIGN

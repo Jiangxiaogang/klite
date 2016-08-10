@@ -20,22 +20,13 @@
 ******************************************************************************/
 	#define TCB_OFFSET_STATE		(0)
 	#define TCB_OFFSET_SP			(4)
-	#define TCB_OFFSET_MAIN			(8)
-	#define TCB_OFFSET_ARG			(12)
-	#define NVIC_INT_CTRL   		(0xE000ED04)
-	#define PEND_INT_SET			(1<<28)
 	
 	EXTERN	kern_tcb_now
 	EXTERN	kern_tcb_new
-	EXTERN	kernel_tick
-	EXTERN	kthread_exit
 	
 	PUBLIC cpu_irq_enable
 	PUBLIC cpu_irq_disable
-	PUBLIC cpu_tcb_switch
-	PUBLIC cpu_tcb_init
 	PUBLIC PendSV_Handler
-	PUBLIC SysTick_Handler
 	
 	SECTION .text:CODE:NOROOT(4)
 	
@@ -45,12 +36,6 @@ cpu_irq_disable:
 	
 cpu_irq_enable:
 	CPSIE 	I
-	BX		LR
-	
-cpu_tcb_switch:
-	LDR		R0,=NVIC_INT_CTRL
-	LDR		R1,=PEND_INT_SET
-	STR		R1,[R0]
 	BX		LR
 
 PendSV_Handler:
@@ -68,58 +53,8 @@ POPSTACK
 	STR		R0, [R3,#TCB_OFFSET_STATE]
     LDR     SP, [R3,#TCB_OFFSET_SP]
     POP     {R4-R11}
-    
     CPSIE   I
     BX      LR
-	
-SysTick_Handler:
-	PUSH    {LR}
-	LDR		R0, =kernel_tick
-	BLX		R0
-	POP		{LR}
-	BX		LR
-	
-//void cpu_tcb_init(struct tcb* tcb, uint32_t sp_min, uint32_t sp_max)
-cpu_tcb_init:
-	PUSH    {R12}
-	LSR		R12,R2,#+3
-    LSL    	R12,R12,#+3
-	SUB     R12,R12,#+4
-//xPSR = 0x01000000
-	LDR		R3,=0x01000000
-	STMDB   R12!,{R3}
-//PC=tcb->main
-	LDR		R3,[R0,#TCB_OFFSET_MAIN]
-	STMDB   R12!,{R3}
-//R14(LR)=kthread_exit
-	LDR		R3,=kthread_exit
-	STMDB   R12!,{R3}
-//R12
-	MOV		R3,#0
-	STMDB   R12!,{R3}
-//R1-R3
-	MOV		R3,#0
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-//R0
-	LDR		R3,[R0,#TCB_OFFSET_ARG]
-	STMDB   R12!,{R3}
-
-//R4-R11
-	MOV		R3,#0
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-	STMDB   R12!,{R3}
-//tcb->sp = R12
-	STR     R12,[R0, #TCB_OFFSET_SP]
-	POP     {R12}
-	BX		LR
 	
 	END
 	
