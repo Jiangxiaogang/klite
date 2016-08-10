@@ -15,7 +15,7 @@ KLite是一个为ARM Cortex-M微控制器设计的微内核,设计思想是"简�
 如线程管理,内存管理,线程同步等.
 
 #二.移植
-KLite已经为Cortex-M构架做好了适配,如STM32F/1/2/3/4系列单片机.
+KLite已经为Cortex-M构架做好了适配,如STM32F0/1/2/3/4系列单片机.
 
 如果你的CPU平台是基于以上三个平台的,那么可以直接使用预编译的库文件;
 
@@ -25,9 +25,9 @@ KLite已经为Cortex-M构架做好了适配,如STM32F/1/2/3/4系列单片机.
 #三.开始使用
 ##1.准备KLite库文件
 	预编译库包含三个文件:
-	kernel.lib 内核库文件(由kernel.c,cpu_core_cm3/4.c编译)
+	kernel.lib 内核库文件(由kernel.c,cpu_core_xxx.c编译)
 	kernel.h   内核头文件
-	cpu_init.c CPU初始化代码
+	cpu.c      CPU初始化代码
 建议:在你的工程目录下新建'kernel'文件夹,添加KLite的三个文件,并添加至你的
 
 工程中,根据情况修改cpu.c里面的CPU主频为实际的值.
@@ -50,7 +50,7 @@ kernel_start用于启动KLite;
 相关函数参数说明请参照API文档.
 
 #四.支持
-如果你在使用中发现任何BUG,请发邮件至kerndev@foxmail.com,我将尽力改进.
+如果你在使用中发现任何BUG,请加入我的QQ群或者发邮件至kerndev@foxmail.com.
 
-目前没有Cortex-M0和M7的器件,希望有人能提交基于CM0和CM7的Pull request.非常感谢!
+目前没有Cortex-M7的器件,希望有人能提交基于CM7的Pull request.非常感谢!
 
