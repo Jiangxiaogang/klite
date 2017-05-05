@@ -1,4 +1,4 @@
-KLite 移植说明文件 V1.0
+KLite 移植说明文件 V1.1
 
 KLite是一个“简洁易用”的嵌入式操作系统微内核
 目前支持Cortex-M0/M3/M4构架
@@ -6,63 +6,51 @@ KLite是一个“简洁易用”的嵌入式操作系统微内核
 
 一.普通移植
   普通移植是指在KLite已经支持的CPU架构(如Cortex-M0,M3,M4)上进行移植,
-这种情况的移植工作非常简单，只需要修改源码cpu.c即可，对于其它文件请
+这种情况的移植工作非常简单，只需要修改源码cpu_os.c即可，对于其它文件请
 不要修改。
   
-  对于cpu.c主要实现以下几个函数:
-1.void cpu_init(void)
+  对于cpu_os.c主要实现以下几个函数:
+1.void cpu_os_init(void)
 作用:初始化目标CPU的系统时钟
-说明:此函数必须在kernel_init()之前手动调用,建议放在startup.s执行
+说明:此函数被kernel_init()调用.
 
-2.void cpu_core_init(void)
-作用:初始化内核用到的中断
-说明:此函数在kernel_init()函数内部调用
-
-3.void cpu_tick_init(void)
+2.void cpu_os_start(void)
 作用:初始化系统滴答定时器，通常为1ms
-说明:此函数在kernel_start()函数内部调用
+说明:此函数被kernel_start()函数调用.
 
-4.void cpu_idle(void)
+3.void cpu_os_idle(void)
 作用:完成一些省电操作
 说明:此函数在kernel空闲时由系统调用
 
 
 二.完全移植
   完全移植是指在KLite目前不支持的CPU架构(如ARM7,ARM9)上进行移植,
-这种情况的移植难度比较大，需要修改cpu_core_xxx.s和cpu.c。
-
-  对于cpu_core_xxx.s文件需要实现以下功能:
+这种情况的移植难度比较大，需要实现一些汇编代码，参考port/keil/arm_cm3.c。
+该文件需要实现以下功能:
 
 1.中断管理
-void cpu_irq_disable(void)	//作用:关闭CPU中断
 void cpu_irq_enable(void)	//作用:开启CPU中断
+void cpu_irq_disable(void)	//作用:关闭CPU中断
 
-2.线程堆栈管理
+
+2.TCB管理
 void cpu_tcb_init(struct tcb* tcb, uint32_t sp_min, uint32_t sp_max)
-作用:初始化线程堆栈
-说明:tcp为目标线程上下文指针,sp_min和sp_max为堆栈指针的最大值和最小值,
-     请根据目标CPU平台的堆栈增长方向决定目标TCB中的sp成员值,
+作用: 初始化任务堆栈
+说明: tcp为任务上下文指针,sp_min和sp_max为堆栈指针的最大值和最小值,
+     根据目标CPU平台的堆栈增长方向决定目标TCB中的sp成员值,
      并初始化堆栈中的:
-         PC=tcb->main	(线程入口函数)
+         PC=tcb->func	(线程入口函数)
          R0=tcb->arg	(线程入口函数参数)
          LR=kthread_exit(线程退出)
          
 void cpu_tcb_switch(void)
 作用:任务上下文切换
-说明:全局变量kern_tcb_now为当前运行中的任务上下文指针
-     全局变量kern_tcb_new为即将切换到的任务上下文指针
-     a.将当前CPU运行相关的寄存器压入kern_tcb_now->sp指向的堆栈中
-     b.从kern_tcb_new->sp指向的堆栈中弹出CPU运行相关的寄存器
-     c.标记kern_tcb_new->state为运行状态,并将kern_tcb_now的值修改为kern_tcb_new
+说明:全局变量sched_tcb_now为当前运行中的任务上下文指针
+     全局变量sched_tcb_new为即将切换到的任务上下文指针
+     a.将当前CPU运行相关的寄存器压入sched_tcb_now->sp指向的堆栈中
+     b.从sched_tcb_new->sp指向的堆栈中弹出CPU运行相关的寄存器
+     c.将sched_tcb_now的值修改为sched_tcb_new
 
-3.提供内核时钟
-在目标CPU平台实现1个1ms中断的定时器，并在中断函数中调用kernel_tick()函数
-
-
-  对于cpu.c的修改，请参照前面的“普通移植”即可。
-  
-
-三.开源
-  如果你完成了一项完全移植，非常希望你能提交到我的码云git
-
+3.提供内核节拍时钟
+在目标CPU平台实现1个1ms节拍定时器，并在中断函数中调用kernel_tick()函数
 

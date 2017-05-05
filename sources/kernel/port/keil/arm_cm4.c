@@ -1,29 +1,33 @@
 /******************************************************************************
-* lowlevel cpu arch functions of Cortex-M4
-* Copyright (C) 2015-2016 jiangxiaogang <kerndev@foxmail.com>
+* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
 *
-* This file is part of klite.
+* This file is part of KLite distribution.
+*
+* KLite is free software, you can redistribute it and/or modify it under
+* the MIT Licence.
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 * 
-* klite is free software; you can redistribute it and/or modify it under the 
-* terms of the GNU Lesser General Public License as published by the Free 
-* Software Foundation; either version 2.1 of the License, or (at your option) 
-* any later version.
-*
-* klite is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with klite; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
 #include "internal.h"
-#include "cpu.h"
 
-#define TCB_OFFSET_STATE		(0)
-#define TCB_OFFSET_SP			(4)
+#define TCB_OFFSET_SP			(0)
 #define NVIC_INT_CTRL   		(*((volatile uint32_t*)0xE000ED04))
 #define PEND_INT_SET			(1<<28)
 
@@ -44,18 +48,16 @@ __asm void cpu_irq_enable(void)
 
 void cpu_tcb_init(struct tcb* tcb, uint32_t sp_min, uint32_t sp_max)
 {
-	tcb->sp = (uint32_t*)(sp_max & 0xFFFFFFF8);	//
-	//自动入栈
-	*(--tcb->sp) = 0x01000000;         		// xPSR(Cortex-M3 say:xPSR bit24=1)
-	*(--tcb->sp) = (uint32_t)tcb->main;		// PC
+	tcb->sp = (uint32_t*)(sp_max & 0xFFFFFFF8);
+	*(--tcb->sp) = 0x01000000;         		// xPSR(Cortex-M3 says: xPSR bit24=1)
+	*(--tcb->sp) = (uint32_t)tcb->func;		// PC
 	*(--tcb->sp) = (uint32_t)kthread_exit;  // R14(LR)
 	*(--tcb->sp) = 0;         				// R12
 	*(--tcb->sp) = 0;         				// R3
 	*(--tcb->sp) = 0;         				// R2
 	*(--tcb->sp) = 0;         				// R1
 	*(--tcb->sp) = (uint32_t)tcb->arg;  	// R0
-	
-	//手动入栈
+
 	*(--tcb->sp) = 0xFFFFFFF9;         		// LR(EXC_RETURN)
 	*(--tcb->sp) = 0;         				// R11
 	*(--tcb->sp) = 0;         				// R10
@@ -76,26 +78,23 @@ __asm void PendSV_Handler(void)
 {
 	PRESERVE8
     CPSID   I
-    LDR     R0, =__cpp(&kern_tcb_now)
+    LDR     R0, =__cpp(&sched_tcb_now)
 	LDR     R1, [R0]
-	CBZ     R1, POPSTK
-
+	CBZ     R1, POPSTACK
 	TST     LR,#0x10					;CHECK FPU
 	VPUSHEQ	{S16-S31}
     PUSH    {LR,R4-R11}
     STR     SP, [R1,#TCB_OFFSET_SP]
 
-POPSTK
-    LDR     R2, =__cpp(&kern_tcb_new)
+POPSTACK
+    LDR     R2, =__cpp(&sched_tcb_new)
 	LDR     R3, [R2]
     STR     R3, [R0]
-	MOV		R0, #0						;TCB_STAT_RUNNING
-	STR		R0, [R3,#TCB_OFFSET_STATE]
-	
     LDR     SP, [R3,#TCB_OFFSET_SP]
     POP     {LR,R4-R11}
 	TST     LR,#0x10
 	VPOPEQ	{S16-S31}
+	
     CPSIE   I
     BX      LR
 	ALIGN

@@ -1,4 +1,4 @@
-KLite API参考手册 V1.0
+KLite API参考手册 V1.1
 
 1.功能特性
   KLite是一个为ARM Cortex-M微控制器设计的微内核,设计思想是"简洁易用".
@@ -22,7 +22,7 @@ KLite API参考手册 V1.0
 	KLite内核初始化.
 参数: 
 	addr    内核动态管理内存起始地址
-    	size    内核动态管理内存大小  
+	size    内核动态管理内存大小  
 返回值: 
 	无
 备注:
@@ -32,13 +32,13 @@ KLite API参考手册 V1.0
 原型: 
 	void kernel_start(void)
 功能: 
-	启动KLite内核,内部调用底层函数cpu_tick_init,以启动滴答定时器.
+	启动KLite内核,内部调用底层函数cpu_os_start,以启动滴答定时器.
 参数: 
 	无 
 返回值: 
 	无
 备注:
-	在启动KLite之前调用至少需要创建一个用户线程.
+	这个函数不会返回,在调用之前至少需要创建一个用户线程.
 -------------------------------------------------------------------------------	
 原型:
 	uint32_t kernel_version(void)
@@ -52,7 +52,7 @@ KLite API参考手册 V1.0
 原型:
 	uint32_t kernel_time(void)
 功能:
-	返回内核自启动以来的节拍数,单位毫秒
+	返回内核自启动以来的节拍数.
 参数:
 	无
 返回值:
@@ -158,11 +158,11 @@ KLite API参考手册 V1.0
 	当前线程的标识符
 -------------------------------------------------------------------------------
 原型:
-	void kthread_sleep(uint32_t ms)
+	void kthread_sleep(uint32_t tick)
 功能:
 	将当前线程休眠一段时间,释放CPU控制权
 参数:
-	ms		休眠时间,单位毫秒
+	tick	休眠时间,单位为滴答节拍数
 返回值:
 	无
 -------------------------------------------------------------------------------
@@ -216,11 +216,11 @@ void kmutex_destroy(kmutex_t mutex)
 
 3.5 信号量
 -------------------------------------------------------------------------------
-ksem_t ksem_create(int value)
+ksem_t ksem_create(uint32_t value)
 功能:
 	创建一个新的信号量.
 参数:
-	value	信号量初始值,必须为正数.
+	value	信号量初始值.
 返回值:
 	创建成功返回信号量标识符.
 	创建失败返回NULL.
@@ -237,11 +237,12 @@ void ksem_wait(ksem_t sem)
 备注:
 	无.
 -------------------------------------------------------------------------------
-int  ksem_timedwait(ksem_t sem, uint32_t ms)
+int  ksem_timedwait(ksem_t sem, uint32_t timeout)
 功能:
 	超时等待该信号量为一个非零值,如果未超时则将信号量的值减去1.
 参数:
 	sem		信号量标识符.
+	timeout 等待超时时间，单位为滴答节拍数
 返回值:
 	等待成功返回1.
 	等待超时返回0.
@@ -258,7 +259,7 @@ void ksem_post(ksem_t sem)
 备注:
 	无.
 -------------------------------------------------------------------------------
-int  ksem_getvalue(ksem_t sem)
+uint32_t ksem_getvalue(ksem_t sem)
 功能:
 	返回信号量的计数值.
 参数:
@@ -303,12 +304,12 @@ void kevent_wait(kevent_t event)
 备注:
 	无.
 -------------------------------------------------------------------------------
-int  kevent_timedwait(kevent_t event, uint32_t ms)
+int  kevent_timedwait(kevent_t event, uint32_t timeout)
 功能:
 	定时等待事件.
 参数:
 	event	事件标识符.
-	ms		等待时间,单位毫秒.
+	timeout	等待超时时间，单位为滴答节拍数.
 返回值:
 	等待成功返回1.
 	等待超时返回0.

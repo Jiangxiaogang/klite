@@ -1,7 +1,6 @@
 #KLite说明文档
-KLite是免费开源软件,基于LGPL协议开放源代码,建议以库文件的方式直接使用KLite.
-
-蒋晓岗<kerndev@foxmail.com> 保留所有权利.
+KLite是免费开源软件,基于MIT协议开放源代码.
+作者: 蒋晓岗<kerndev@foxmail.com> 保留所有权利.
 
 #一.简介
 KLite是一个为ARM Cortex-M微控制器设计的微内核,设计思想是"简洁易用".
@@ -15,7 +14,7 @@ KLite是一个为ARM Cortex-M微控制器设计的微内核,设计思想是"简�
 如线程管理,内存管理,线程同步等.
 
 #二.移植
-KLite已经为Cortex-M构架做好了适配,如STM32F0/1/2/3/4系列单片机.
+KLite已经为Cortex-M0/M3/M4构架做好了适配,如STM32F0/1/2/3/4系列单片机.
 
 如果你的CPU平台是基于以上三个平台的,那么可以直接使用预编译的库文件;
 
@@ -23,29 +22,29 @@ KLite已经为Cortex-M构架做好了适配,如STM32F0/1/2/3/4系列单片机.
 
 
 #三.开始使用
-##1.准备KLite库文件
-	预编译库包含三个文件:
-	kernel.lib 内核库文件(由kernel.c,cpu_core_xxx.c编译)
-	kernel.h   内核头文件
-	cpu.c      CPU初始化代码
-建议:在你的工程目录下新建'kernel'文件夹,添加KLite的三个文件,并添加至你的
+##1.编译KLite
+	在build目录下面有预设的工程文件，选择你要使用的编译器和目标CPU平台,
+该工程编译完成后，会生成kernel.lib文件，将kernel.lib, kernel.h, cpu_os.c
+复制到你的项目源码中，使用lib文件可以减少重复编译时间.
 
-工程中,根据情况修改cpu.c里面的CPU主频为实际的值.
-##2.在main函数里面添加初始化代码:
+##2.修改cpu_os.c
+	根据目标CPU的编程手册，实现cpu_os.c里面的3个空函数.
+
+##3.在main函数里面添加初始化代码
+	main函数的推荐写法如下:
 ```
 void main(void)
 {
-	kernel_init(RAM_ADDR,RAM_SIZE);
-	kthread_create(init,0,0);
+	kernel_init(RAM_ADDR, RAM_SIZE);
+	kthread_create(init, 0, 0);
 	kernel_start();
 }
 ```
-注解:
-kernel_init用于初始化KLite,并设置可用内存;
-
-kthread_create创建第一个线程init,在init线程中执行你的初始化代码;
-
-kernel_start用于启动KLite;
+说明:
+kernel_init 用于初始化KLite,并设置可用内存;
+kthread_create 创建第一个线程init;
+kernel_start 用于启动KLite;
+init是一个线程函数，在该函数中实现你的其它初始化代码.
 
 相关函数参数说明请参照API文档.
 

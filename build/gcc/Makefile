@@ -1,5 +1,5 @@
-# klite
-# FIXME:Õâ¸ömakefileÐ´µÃÌ«ËÀ°å!
+# KLite
+# Who can rewrite this file?
 # jiangxiaogang<kerndev@foxmail.com>
 # 2016.7.25
 
@@ -7,8 +7,8 @@ SRCDIR:=../../sources
 INCDIR:=../../sources/
 OBJDIR:=obj
 
-CC:= C:/Program Files/Git/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
-AR:= C:/Program Files/Git/gcc-arm-none-eabi/bin/arm-none-eabi-ar
+CC:= C:/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
+AR:= C:/gcc-arm-none-eabi/bin/arm-none-eabi-ar
 
 SRCS:=$(SRCDIR)/kernel.c
 OBJS:=$(OBJDIR)/kernel.o
@@ -21,7 +21,7 @@ SRCS+=$(SRCDIR)/gcc/cpu_core_cm0.c
 SRCS+=$(SRCDIR)/gcc/cpu_core_cm0_asm.s
 OBJS+=$(OBJDIR)/cpu_core_cm0.o
 OBJS+=$(OBJDIR)/cpu_core_cm0_asm.o
-TARGET=kernel-cm0.lib
+TARGET=kernel_cm0.lib
 CFLAGS:=-W -O0 -I$(INCDIR) -mthumb
 endif
 
@@ -31,7 +31,7 @@ SRCS+=$(SRCDIR)/gcc/cpu_core_cm3.c
 SRCS+=$(SRCDIR)/gcc/cpu_core_cm3_asm.s
 OBJS+=$(OBJDIR)/cpu_core_cm3.o
 OBJS+=$(OBJDIR)/cpu_core_cm3_asm.o
-TARGET=kernel-cm3.lib
+TARGET=kernel_cm3.lib
 CFLAGS:=-W -O0 -I$(INCDIR) -mthumb 
 endif
 
@@ -41,7 +41,7 @@ SRCS+=$(SRCDIR)/gcc/cpu_core_cm4.c
 SRCS+=$(SRCDIR)/gcc/cpu_core_cm4_asm.s
 OBJS+=$(OBJDIR)/cpu_core_cm4.o
 OBJS+=$(OBJDIR)/cpu_core_cm4_asm.o
-TARGET=kernel-cm4.lib
+TARGET=kernel_cm4.lib
 CFLAGS:=-W -O0 -I$(INCDIR) -mthumb -mfpu=fpv4-sp-d16
 endif
 
