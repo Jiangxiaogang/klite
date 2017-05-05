@@ -1,5 +1,5 @@
 #KLite说明文档
-KLite是免费开源软件,基于MIT协议开放源代码.
+KLite是免费开源软件,基于 MIT 协议开放源代码.
 作者: 蒋晓岗<kerndev@foxmail.com> 保留所有权利.
 
 #一.简介
