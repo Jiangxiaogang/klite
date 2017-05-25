@@ -1,5 +1,7 @@
 #KLite说明文档
+
 KLite是免费开源软件,基于 MIT 协议开放源代码.
+
 作者: 蒋晓岗<kerndev@foxmail.com> 保留所有权利.
 
 #一.简介
@@ -51,5 +53,5 @@ init是一个线程函数，在该函数中实现你的其它初始化代码.
 #四.支持
 如果你在使用中发现任何BUG,请加入我的QQ群或者发邮件至kerndev@foxmail.com.
 
-目前没有Cortex-M7的器件,希望有人能提交基于CM7的Pull request.非常感谢!
+目前没有Cortex-M7的器件,希望有人能提交基于CM7的代码.非常感谢!
 
