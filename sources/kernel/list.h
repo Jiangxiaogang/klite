@@ -27,94 +27,23 @@
 #ifndef __LIST_H
 #define __LIST_H
 
-struct __node
+struct node
 {
-	struct __node* 	prev;
-	struct __node* 	next;
+	struct node* prev;
+	struct node* next;
 };
 
-struct __list
+struct list
 {
-	struct __node* 	head;
-	struct __node* 	tail;
+	struct node* head;
+	struct node* tail;
 };
 
-static void list_init(void* list)
-{
-	((struct __list*)list)->head = NULL;
-	((struct __list*)list)->tail = NULL;
-}
-
-static void list_append(void* list, void* node)
-{
-	if(((struct __list*)list)->head == NULL)
-	{
-		((struct __node*)node)->prev = NULL;
-		((struct __node*)node)->next = NULL;
-		((struct __list*)list)->head = node;
-		((struct __list*)list)->tail = node;
-	}
-	else
-	{
-		((struct __node*)node)->prev = ((struct __list*)list)->tail;
-		((struct __node*)node)->next = NULL;
-		((struct __list*)list)->tail->next = node;
-		((struct __list*)list)->tail =node;
-	}
-}
-
-static void list_remove(void* list, void* node)
-{
-	if(((struct __node*)node)->prev != NULL)
-	{
-		((struct __node*)node)->prev->next = ((struct __node*)node)->next;
-	}
-	else
-	{
-		((struct __list*)list)->head = ((struct __node*)node)->next;
-	}
-
-	if(((struct __node*)node)->next != NULL)
-	{
-		((struct __node*)node)->next->prev = ((struct __node*)node)->prev;
-	}
-	else
-	{
-		((struct __list*)list)->tail = ((struct __node*)node)->prev;
-	}
-}
-
-static void list_insert(void* list, void* after, void* node)
-{
-	if(after == NULL)
-	{
-		((struct __node*)node)->prev = after;
-		((struct __node*)node)->next = ((struct __list*)list)->head;
-		((struct __list*)list)->head = node;
-	}
-	else
-	{
-		((struct __node*)node)->prev = after;
-		((struct __node*)node)->next = ((struct __node*)after)->next;
-		((struct __node*)after)->next = node;
-	}
-	if(((struct __node*)node)->next == NULL)
-	{
-		((struct __list*)list)->tail = node;
-	}
-	else
-	{
-		((struct __node*)node)->next->prev = node;
-	}
-}
-
-static void list_move(void* list, void* after, void* node)
-{
-	if(after != node)
-	{
-		list_remove(list,node);
-		list_insert(list,after,node);
-	}
-}
+void list_init(void* list);
+void list_append(void* list, void* node);
+void list_remove(void* list, void* node);
+void list_insert_after(void* list, void* after, void* node);
+void list_insert_before(void* list, void* before, void* node);
 
 #endif
+

@@ -27,35 +27,20 @@
 #include "kernel.h"
 #include "internal.h"
 
-struct event_obj
-{
-	struct tcb_node* head;
-	struct tcb_node* tail;
-	uint32_t data;
-};
-
 kevent_t kevent_create(int state)
 {
-	struct event_obj* obj;
-	obj = kmem_alloc(sizeof(struct event_obj));
-	if(obj != NULL)
-	{
-		obj->head = NULL;
-		obj->tail = NULL;
-		obj->data = state;
-	}
-	return (kevent_t)obj;
+	return (kevent_t)kobject_create(state);
 }
 
 void kevent_destroy(kevent_t event)
 {
-	kmem_free(event);
+	kobject_delete((struct object*)event);
 }
 
 void kevent_wait(kevent_t event)
 {
-	struct event_obj* obj;
-	obj = (struct event_obj*)event;
+	struct object* obj;
+	obj = (struct object*)event;
 	
 	ksched_lock();
 	if(obj->data != 0)
@@ -64,15 +49,15 @@ void kevent_wait(kevent_t event)
 		ksched_unlock();
 		return;
 	}
-	ksched_wait(sched_tcb_now, obj);
+	kobject_wait(obj, sched_tcb_now);
 	ksched_unlock();
-	ksched_switch();
+	ksched_execute();
 }
 
 int kevent_timedwait(kevent_t event, uint32_t timeout)
 {
-	struct event_obj* obj;
-	obj = (struct event_obj*)event;
+	struct object* obj;
+	obj = (struct object*)event;
 	
 	ksched_lock();
 	if(obj->data != 0)
@@ -86,19 +71,16 @@ int kevent_timedwait(kevent_t event, uint32_t timeout)
 		ksched_unlock();
 		return 0;
 	}
-	ksched_timedwait(sched_tcb_now, obj, timeout);
+	kobject_timedwait(obj, sched_tcb_now, timeout);
 	ksched_unlock();
-	ksched_switch();
+	ksched_execute();
 	return (sched_tcb_now->timeout != 0);
 }
 
 void kevent_post(kevent_t event)
 {
-	struct tcb_node* node;
-	struct tcb_node* next;
-	struct event_obj* obj;
-
-	obj = (struct event_obj*)event;
+	struct object* obj;
+	obj = (struct object*)event;
 	
 	ksched_lock();
 	if(obj->head == NULL)
@@ -107,10 +89,10 @@ void kevent_post(kevent_t event)
 		ksched_unlock();
 		return;
 	}
-	for(node=obj->head; node!=NULL; node=next)
+	while(obj->head)
 	{
-		next = node->next;
-		ksched_post(node->tcb, obj);
+		kobject_post(obj, obj->head->tcb);
 	}
 	ksched_unlock();
 }
+

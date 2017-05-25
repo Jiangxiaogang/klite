@@ -26,47 +26,53 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "internal.h"
+#include "list.h"
 
-kmutex_t kmutex_create(void)
-{
-	return (kmutex_t)kobject_create(0);
-}
-
-void kmutex_destroy(kmutex_t mutex)
-{
-	kobject_delete((struct object*)mutex);
-}
-
-void kmutex_lock(kmutex_t mutex)
+struct object* kobject_create(uint32_t data)
 {
 	struct object* obj;
-	obj = (struct object*)mutex;
-
-	ksched_lock();
-	if(obj->data == 0)
+	obj = kmem_alloc(sizeof(struct object));
+	if(obj != NULL)
 	{
-		obj->data = 1;
-		ksched_unlock();
-		return;
+		obj->head = NULL;
+		obj->tail = NULL;
+		obj->data = data;
 	}
-	kobject_wait(obj, sched_tcb_now);
-	ksched_unlock();
-	ksched_execute();
+	return obj;
 }
 
-void kmutex_unlock(kmutex_t mutex)
+void kobject_delete(struct object* obj)
 {
-	struct object* obj;
-	obj = (struct object*)mutex;
-	
-	ksched_lock();
-	if(obj->head == NULL)
+	kmem_free(obj);
+}
+
+void kobject_wait(struct object* obj, struct tcb* tcb)
+{
+	tcb->state = TCB_STATE_WAIT;
+	tcb->lwait = (struct tcb_list*)obj;
+	ksched_insert((struct tcb_list*)obj, tcb->nwait);
+}
+
+void kobject_timedwait(struct object* obj, struct tcb* tcb, uint32_t timeout)
+{
+	tcb->state   = TCB_STATE_TIMEDWAIT;
+	tcb->timeout = timeout;
+	tcb->lwait   = (struct tcb_list*)obj;
+	tcb->lsched  = &sched_list_sleep;
+	list_append(&sched_list_sleep, tcb->nsched);
+	ksched_insert((struct tcb_list*)obj, tcb->nwait);
+}
+
+void kobject_post(struct object* obj, struct tcb* tcb)
+{
+	if(tcb->lsched)
 	{
-		obj->data = 0;
-		ksched_unlock();
-		return;
+		list_remove(tcb->lsched, tcb->nsched);
 	}
-	kobject_post(obj, obj->head->tcb);
-	ksched_unlock();
+	tcb->state  = TCB_STATE_READY;
+	tcb->lwait  = NULL;
+	tcb->lsched = &sched_list_ready;
+	list_remove(obj, tcb->nwait);
+	ksched_insert(&sched_list_ready, tcb->nsched);
 }
 

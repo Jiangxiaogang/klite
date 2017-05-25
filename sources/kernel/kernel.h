@@ -41,6 +41,7 @@ typedef void*	ksem_t;
 void 		kernel_init(uint32_t mem_addr, uint32_t mem_size);
 void 		kernel_start(void);
 uint32_t    kernel_time(void);
+uint32_t    kernel_idletime(void);
 uint32_t	kernel_version(void);
 
 /******************************************************************************
@@ -55,8 +56,11 @@ void   		kmem_info(uint32_t* total, uint32_t* used);
 ******************************************************************************/
 kthread_t 	kthread_create(void(*func)(void*), void* arg, uint32_t stk_size);
 void   		kthread_destroy(kthread_t thread);
+void        kthread_suspend(kthread_t thread);
+void        kthread_resume(kthread_t thread);
 void 		kthread_setprio(kthread_t thread, int prio);
 int	        kthread_getprio(kthread_t thread);
+uint32_t    kthread_time(kthread_t thread);
 void		kthread_sleep(uint32_t tick);
 void   		kthread_exit(void);
 kthread_t 	kthread_self(void);
@@ -91,9 +95,11 @@ uint32_t	ksem_getvalue(ksem_t sem);
 /******************************************************************************
 * alias
 ******************************************************************************/
+#define     CLOCKS_PER_SEC	1000
+#define		clock	kernel_time
+#define		sleep	kthread_sleep
 #define 	malloc	kmem_alloc
 #define		free	kmem_free
-#define		sleep	kthread_sleep
-#define		clock	kernel_time
 
 #endif
+

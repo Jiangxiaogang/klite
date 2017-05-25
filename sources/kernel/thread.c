@@ -26,31 +26,34 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "internal.h"
+#include "list.h"
 
 kthread_t kthread_create(void(*func)(void*), void* arg, uint32_t stk_size)
 {
 	struct tcb* tcb;
-	uint32_t sp_min;
-	uint32_t sp_max;
+	uint32_t tcb_size;
 	stk_size = stk_size ? stk_size : THREAD_STACK_SIZE;
-	tcb = kmem_alloc(sizeof(struct tcb)+sizeof(struct tcb_node)*2+stk_size);
+	tcb_size = sizeof(struct tcb) + sizeof(struct tcb_node)*2 + stk_size;
+	tcb = kmem_alloc(tcb_size);
 	if(tcb != NULL)
 	{
 		tcb->func   = func;
 		tcb->arg    = arg;
 		tcb->prio   = 0;
 		tcb->timeout= 0;
+		tcb->time   = 0;
+		tcb->state  = TCB_STATE_READY;
 		tcb->lwait  = NULL;
-		tcb->lsched = NULL;
-		tcb->nwait  = (void*)(tcb+1);
+		tcb->lsched = &sched_list_ready;
+		tcb->nsched = (struct tcb_node*)(tcb+1);
+		tcb->nwait  = tcb->nsched+1;
 		tcb->nwait->tcb  = tcb;
-		tcb->nsched= (void*)(tcb->nwait+1);
 		tcb->nsched->tcb = tcb;
-		sp_min = (uint32_t)(tcb->nsched+1);
-		sp_max = sp_min+stk_size;
-		cpu_tcb_init(tcb, sp_min, sp_max);
+		tcb->sp_min = (uint32_t)(tcb->nwait+1);
+		tcb->sp_max = tcb->sp_min+stk_size;
+		cpu_tcb_init(tcb);
 		ksched_lock();
-		ksched_ready(tcb);
+		ksched_insert(&sched_list_ready, tcb->nsched);
 		ksched_unlock();
 	}
 	return (kthread_t)tcb;
@@ -60,20 +63,49 @@ void kthread_destroy(kthread_t thread)
 {
 	struct tcb* tcb;
 	tcb = (struct tcb*)thread;
-
-	if(tcb != sched_tcb_now)
-	{
-		ksched_lock();
-		ksched_remove(tcb);
-		ksched_unlock();
-		kmem_free(tcb);
-		return;
-	}
 	ksched_lock();
+	if(tcb->lwait)
+	{
+		list_remove(tcb->lwait, tcb->nwait);
+	}
+	if(tcb->lsched)
+	{
+		list_remove(tcb->lsched, tcb->nsched);
+	}
 	kmem_free(tcb);
-	sched_tcb_now = NULL;
 	ksched_unlock();
-	ksched_switch();
+}
+
+void kthread_suspend(kthread_t thread)
+{
+	struct tcb* tcb;
+	tcb = (struct tcb*)thread;
+	ksched_lock();
+	if(tcb->lwait)
+	{
+		list_remove(tcb->lwait, tcb->nwait);
+	}
+	if(tcb->lsched)
+	{
+		list_remove(tcb->lsched, tcb->nsched);
+	}
+	ksched_unlock();
+}
+
+void kthread_resume(kthread_t thread)
+{
+	struct tcb* tcb;
+	tcb = (struct tcb*)thread;
+	ksched_lock();
+	if(tcb->lwait)
+	{
+		ksched_insert(tcb->lwait, tcb->nwait);
+	}
+	if(tcb->lsched)
+	{
+		ksched_insert(tcb->lsched, tcb->nsched);
+	}
+	ksched_unlock();
 }
 
 void kthread_setprio(kthread_t thread, int prio)
@@ -92,9 +124,20 @@ int kthread_getprio(kthread_t thread)
 	return tcb->prio;
 }
 
+uint32_t kthread_time(kthread_t thread)
+{
+	struct tcb* tcb;
+	tcb  = (struct tcb*)thread;
+	return tcb->time;
+}
+
 void kthread_exit(void)
 {
-	kthread_destroy(sched_tcb_now);
+	ksched_lock();
+	kmem_free(sched_tcb_now);
+	sched_tcb_now = NULL;
+	ksched_unlock();
+	ksched_execute();
 }
 
 kthread_t kthread_self(void)
@@ -104,11 +147,17 @@ kthread_t kthread_self(void)
 
 void kthread_sleep(uint32_t tick)
 {
+	struct tcb* tcb;
 	if(tick != 0)
 	{
 		ksched_lock();
-		ksched_sleep(sched_tcb_now, tick);
+		tcb = sched_tcb_now;
+		tcb->state   = TCB_STATE_SLEEP;
+		tcb->timeout = tick;
+		tcb->lsched  = &sched_list_sleep;
+		list_append(&sched_list_sleep, tcb->nsched);
 		ksched_unlock();
-		ksched_switch();
+		ksched_execute();
 	}
 }
+
