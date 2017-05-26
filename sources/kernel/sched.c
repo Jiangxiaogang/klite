@@ -61,6 +61,7 @@ static void ksched_timer(void)
 			tcb->state  = TCB_STATE_READY;
 			tcb->lsched = &sched_list_ready;
 			list_remove(&sched_list_sleep, node);
+			//list_append(&sched_list_ready, node);
 			ksched_insert(&sched_list_ready, node);
 		}
 	}
@@ -70,6 +71,7 @@ static void ksched_timer(void)
 static void ksched_preempt(void)
 {
 	struct tcb_node* node;
+	
 	if(sched_tcb_now->state != TCB_STATE_RUNNING)
 	{
 		return;
@@ -147,19 +149,16 @@ void ksched_timetick(void)
 	}
 }
 
-//链表结点已按优先级从高至低排好序,表头为最高优先级,倒着遍历效率较高
+//表头为最高优先级,倒着遍历可以更快找到插入点
 void ksched_insert(struct tcb_list* list, struct tcb_node* node)
 {
-	int32_t prio;
 	struct tcb_node* find;
-	prio = node->tcb->prio;
 	for(find=list->tail; find!=NULL; find=find->prev)
 	{
-		if(find->tcb->prio >= prio)
+		if(find->tcb->prio >= node->tcb->prio)
 		{
 			break;
 		}
 	}
 	list_insert_after(list, find, node);
 }
-

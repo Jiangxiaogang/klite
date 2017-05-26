@@ -24,8 +24,9 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
-	#define TCB_OFFSET_SP			(0)
-
+	#define TCB_OFFSET_SP			(0x00)
+	#define TCB_OFFSET_STATE		(0x0C)
+	
 	EXTERN	sched_tcb_now
 	EXTERN	sched_tcb_new
 	
@@ -60,6 +61,8 @@ POPSTACK
     LDR     R2, =sched_tcb_new
 	LDR     R3, [R2]
     STR     R3, [R0]
+	MOV		R2, #0						;TCB_STATE_RUNNING
+	STR		R2, [R3,#TCB_OFFSET_STATE]
     LDR     SP, [R3,#TCB_OFFSET_SP]
     POP     {R4-R11}
 	POP		{LR}

@@ -114,4 +114,3 @@ void list_insert_after(void* list, void* after, void* node)
 	}
 }
 
-

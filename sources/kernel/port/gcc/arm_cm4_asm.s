@@ -26,7 +26,8 @@
 ******************************************************************************/
 	.syntax unified
 	
-	.equ TCB_OFFSET_SP,	   0
+	.equ TCB_OFFSET_SP,    0x00
+	.equ TCB_OFFSET_STATE, 0x0C
 	
 	.extern	sched_tcb_now
 	.extern	sched_tcb_new
@@ -71,7 +72,9 @@ PendSV_Handler:
 POPSTACK:
     LDR     R2, =sched_tcb_new
 	LDR     R3, [R2]
-    STR     R3, [R0]	
+    STR     R3, [R0]
+	MOV		R2, #0						//TCB_STATE_RUNNING
+	STR		R2, [R3,#TCB_OFFSET_STATE]
     LDR     SP, [R3,#TCB_OFFSET_SP]
     POP     {R4-R11}
 	POP		{LR}

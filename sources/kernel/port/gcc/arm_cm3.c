@@ -27,29 +27,32 @@
 #include "kernel.h"
 #include "internal.h"
 
-#define TCB_OFFSET_SP			(0)
 #define NVIC_INT_CTRL   		(*((volatile uint32_t*)0xE000ED04))
 #define PEND_INT_SET			(1<<28)
 
-void cpu_tcb_init(struct tcb* tcb, uint32_t sp_min, uint32_t sp_max)
+void cpu_tcb_init(struct tcb* tcb)
 {
-	tcb->sp = (uint32_t*)(sp_max & 0xFFFFFFF8);
-	*(--tcb->sp) = 0x01000000;         			// xPSR
-	*(--tcb->sp) = (uint32_t)tcb->func;			// PC
-	*(--tcb->sp) = (uint32_t)kthread_exit; 		// LR
-	*(--tcb->sp) = 0;         					// R12
-	*(--tcb->sp) = 0;         					// R3
-	*(--tcb->sp) = 0;         					// R2
-	*(--tcb->sp) = 0;         					// R1
-	*(--tcb->sp) = (uint32_t)tcb->arg;  		// R0
-	*(--tcb->sp) = 0;         					// R11
-	*(--tcb->sp) = 0;         					// R10
-	*(--tcb->sp) = 0;         					// R9
-	*(--tcb->sp) = 0;         					// R8
-	*(--tcb->sp) = 0;         					// R7
-	*(--tcb->sp) = 0;         					// R6
-	*(--tcb->sp) = 0;         					// R5
-	*(--tcb->sp) = 0;         					// R4
+	uint32_t *sp;
+	sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
+	
+	*(--sp) = 0x01000000;				// xPSR
+	*(--sp) = (uint32_t)tcb->func;		// PC
+	*(--sp) = (uint32_t)kthread_exit;	// R14(LR)
+	*(--sp) = 0;						// R12
+	*(--sp) = 0;						// R3
+	*(--sp) = 0;						// R2
+	*(--sp) = 0;						// R1
+	*(--sp) = (uint32_t)tcb->arg;		// R0
+
+	*(--sp) = 0;						// R11
+	*(--sp) = 0;						// R10
+	*(--sp) = 0;						// R9
+	*(--sp) = 0;						// R8
+	*(--sp) = 0;						// R7
+	*(--sp) = 0;						// R6
+	*(--sp) = 0;						// R5
+	*(--sp) = 0;						// R4
+	tcb->sp = (uint32_t)sp;
 }
 
 void cpu_tcb_switch(void)
@@ -59,5 +62,5 @@ void cpu_tcb_switch(void)
 
 void SysTick_Handler(void)
 {
-	kernel_tick();
+	kernel_timetick();
 }

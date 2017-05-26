@@ -24,7 +24,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
-	#define TCB_OFFSET_SP			(0)
+	#define TCB_OFFSET_SP			(0x00)
+	#define TCB_OFFSET_STATE		(0x0C)
 
 	EXTERN	sched_tcb_now
 	EXTERN	sched_tcb_new
@@ -49,7 +50,7 @@ PendSV_Handler:
 	LDR     R1, [R0]
 	CMP		R1, #0
 	BEQ     POPSTACK
-    PUSH    {R4-R7}						;R8-R11不能直接入栈
+    PUSH    {R4-R7}						;could not push R8-R11
 	MOV     R4,R8
 	MOV     R5,R9
 	MOV     R6,R10
@@ -62,6 +63,8 @@ POPSTACK
     LDR     R2, =sched_tcb_new
 	LDR     R3, [R2]
     STR     R3, [R0]
+	MOV		R2, #0						;TCB_STATE_RUNNING
+	STR		R2, [R3,#TCB_OFFSET_STATE]
     LDR     R0, [R3,#TCB_OFFSET_SP]
 	MOV     SP, R0
     POP     {R4-R7}
