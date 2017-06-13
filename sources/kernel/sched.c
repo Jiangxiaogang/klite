@@ -26,25 +26,20 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "internal.h"
+#include "port.h"
 #include "list.h"
 
-struct tcb*     sched_tcb_now;
-struct tcb*     sched_tcb_new;
-struct tcb_list sched_list_sleep;
-struct tcb_list sched_list_ready;
-static uint32_t sched_locked;
-
-static void ksched_switch(struct tcb* tcb)
-{
-	sched_tcb_new = tcb;
-	cpu_tcb_switch();
-}
+struct tcb*      sched_tcb_now;
+struct tcb*      sched_tcb_new;
+struct tcb_list  sched_list_sleep;
+struct tcb_list  sched_list_ready;
+static uint32_t  sched_locked;
 
 static void ksched_timer(void)
 {
 	struct tcb* tcb;
-	struct tcb_node* next;
 	struct tcb_node* node;
+	struct tcb_node* next;
 	
 	for(node=sched_list_sleep.head; node!=NULL; node=next)
 	{
@@ -58,66 +53,74 @@ static void ksched_timer(void)
 				list_remove(tcb->lwait, tcb->nwait);
 				tcb->lwait = NULL;
 			}
-			tcb->state  = TCB_STATE_READY;
 			tcb->lsched = &sched_list_ready;
 			list_remove(&sched_list_sleep, node);
-			//list_append(&sched_list_ready, node);
 			ksched_insert(&sched_list_ready, node);
 		}
 	}
 }
 
-
 static void ksched_preempt(void)
 {
 	struct tcb_node* node;
-	
-	if(sched_tcb_now->state != TCB_STATE_RUNNING)
+	if(sched_tcb_new != NULL)
 	{
 		return;
 	}
-	
 	node = sched_list_ready.head;
 	if(node == NULL)
 	{
 		return;
 	}
-	
 	if(node->tcb->prio < sched_tcb_now->prio)
 	{
 		return;
 	}
-	
 	node->tcb->lsched = NULL;
 	list_remove(&sched_list_ready, node);
-	
-	sched_tcb_now->state = TCB_STATE_READY;
-	sched_tcb_now->lsched= &sched_list_ready;
 	ksched_insert(&sched_list_ready, sched_tcb_now->nsched);
-	ksched_switch(node->tcb);
+	sched_tcb_now->lsched = &sched_list_ready;
+	sched_tcb_new = node->tcb;
+	cpu_tcb_switch();
 }
 
-void ksched_init(void)
+void ksched_timetick(void)
 {
-	sched_locked  = 0;
-	sched_tcb_now = NULL;
-	sched_tcb_new = NULL;
-	list_init(&sched_list_ready);
-	list_init(&sched_list_sleep);
+	if(sched_tcb_now != NULL)
+	{
+		sched_tcb_now->time++;
+		if(sched_locked == 0)
+		{
+			ksched_timer();
+			ksched_preempt();
+		}
+	}
+}
+
+void ksched_insert(struct tcb_list* list, struct tcb_node* node)
+{
+	struct tcb_node* find;
+	for(find=list->tail; find!=NULL; find=find->prev)
+	{
+		if(find->tcb->prio >= node->tcb->prio)
+		{
+			break;
+		}
+	}
+	list_insert_after(list, find, node);
 }
 
 void ksched_execute(void)
 {
-	struct tcb* tcb;
 	struct tcb_node* node;
 	cpu_irq_disable();
 	node = sched_list_ready.head;
-	tcb  = node->tcb;
-	tcb->lsched = NULL;
+	node->tcb->lsched = NULL;
 	list_remove(&sched_list_ready, node);
-	if(tcb != sched_tcb_now)
+	if(node->tcb != sched_tcb_now)
 	{
-		ksched_switch(tcb);
+		sched_tcb_new = node->tcb;
+		cpu_tcb_switch();
 	}
 	cpu_irq_enable();
 }
@@ -136,29 +139,12 @@ void ksched_unlock(void)
 	cpu_irq_enable();
 }
 
-void ksched_timetick(void)
+void ksched_init(void)
 {
-	if(sched_tcb_now != NULL)
-	{
-		sched_tcb_now->time++;
-		if(sched_locked == 0)
-		{
-			ksched_timer();
-			ksched_preempt();
-		}
-	}
+	sched_locked  = 0;
+	sched_tcb_now = NULL;
+	sched_tcb_new = NULL;
+	list_init(&sched_list_ready);
+	list_init(&sched_list_sleep);
 }
 
-//表头为最高优先级,倒着遍历可以更快找到插入点
-void ksched_insert(struct tcb_list* list, struct tcb_node* node)
-{
-	struct tcb_node* find;
-	for(find=list->tail; find!=NULL; find=find->prev)
-	{
-		if(find->tcb->prio >= node->tcb->prio)
-		{
-			break;
-		}
-	}
-	list_insert_after(list, find, node);
-}

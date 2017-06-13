@@ -24,54 +24,64 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
-	#define TCB_OFFSET_SP			(0x00)
-	#define TCB_OFFSET_STATE		(0x0C)
+	.syntax unified
 	
-	EXTERN	sched_tcb_now
-	EXTERN	sched_tcb_new
+	.equ TCB_OFFSET_SP, 0x00
 	
-	PUBLIC cpu_irq_enable
-	PUBLIC cpu_irq_disable
-	PUBLIC PendSV_Handler
+	.extern	sched_tcb_now
+	.extern	sched_tcb_new
 	
-	SECTION .text:CODE:NOROOT(4)
+	.global cpu_irq_enable
+	.global cpu_irq_disable
+	.global PendSV_Handler
 	
-cpu_irq_disable:
-	CPSID 	I
-	BX		LR
+	.thumb
+	.section ".text"
+	.align  4
 	
 cpu_irq_enable:
-	CPSIE 	I
+	.fnstart
+	.cantunwind
+	CPSIE	I
 	BX		LR
+	.fnend
 	
-PendSV_Handler:
-    CPSID   I
-    LDR     R0, =sched_tcb_now
-	LDR     R1, [R0]
-	CBZ     R1, POPSTACK
+cpu_irq_disable:
+	.fnstart
+	.cantunwind
+	CPSID	I
+	BX		LR
+	.fnend
 
-	TST     LR,#0x10					;CHECK FPU
-	IT      EQ
+PendSV_Handler:
+	.fnstart
+	.cantunwind
+	CPSID	I
+	LDR		R0, =sched_tcb_now
+	LDR		R1, [R0]
+	CBZ		R1, POPSTACK
+	TST		LR, #0x10					//check fpu
+	IT		EQ
 	VPUSHEQ	{S16-S31}
 	PUSH	{LR}
-    PUSH    {R4-R11}
-    STR     SP, [R1,#TCB_OFFSET_SP]
+	PUSH	{R4-R11}
+	STR		SP, [R1,#TCB_OFFSET_SP]
 
-POPSTACK
-    LDR     R2, =sched_tcb_new
-	LDR     R3, [R2]
-    STR     R3, [R0]
-	MOV		R2, #0						;TCB_STATE_RUNNING
-	STR		R2, [R3,#TCB_OFFSET_STATE]
-    LDR     SP, [R3,#TCB_OFFSET_SP]
-    POP     {R4-R11}
+POPSTACK:
+	LDR		R2, =sched_tcb_new
+	LDR		R3, [R2]
+	STR		R3, [R0]
+	MOV		R1, #0						//sched_tcb_new=NULL
+	STR		R1, [R2]
+	LDR		SP, [R3,#TCB_OFFSET_SP]
+	POP		{R4-R11}
 	POP		{LR}
-	TST     LR,#0x10
-	IT      EQ
+	TST		LR, #0x10
+	IT		EQ
 	VPOPEQ	{S16-S31}
+	CPSIE	I
+	BX		LR
+	.fnend
 	
-    CPSIE   I
-    BX      LR
-
-	END
+	.end
 	

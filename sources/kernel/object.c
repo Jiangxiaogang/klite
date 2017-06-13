@@ -48,7 +48,6 @@ void kobject_delete(struct object* obj)
 
 void kobject_wait(struct object* obj, struct tcb* tcb)
 {
-	tcb->state = TCB_STATE_WAIT;
 	tcb->lwait = (struct tcb_list*)obj;
 	ksched_insert((struct tcb_list*)obj, tcb->nwait);
 }
@@ -59,7 +58,6 @@ void kobject_post(struct object* obj, struct tcb* tcb)
 	{
 		list_remove(tcb->lsched, tcb->nsched);
 	}
-	tcb->state  = TCB_STATE_READY;
 	tcb->lwait  = NULL;
 	tcb->lsched = &sched_list_ready;
 	list_remove(obj, tcb->nwait);
@@ -68,7 +66,6 @@ void kobject_post(struct object* obj, struct tcb* tcb)
 
 void kobject_timedwait(struct object* obj, struct tcb* tcb, uint32_t timeout)
 {
-	tcb->state   = TCB_STATE_TIMEDWAIT;
 	tcb->timeout = timeout;
 	tcb->lwait   = (struct tcb_list*)obj;
 	tcb->lsched  = &sched_list_sleep;

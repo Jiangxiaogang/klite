@@ -24,84 +24,69 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
-#include "kernel.h"
-#include "internal.h"
-
-#define NVIC_INT_CTRL (*((volatile uint32_t*)0xE000ED04))
-#define PEND_INT_SET  (1<<28)
-
-__asm void cpu_irq_disable(void)
-{
-    CPSID   I
-    BX		LR
-	ALIGN
-}
-
-__asm void cpu_irq_enable(void)
-{
-	CPSIE	I
-    BX		LR
-	ALIGN
-}
-
-
-void cpu_tcb_init(struct tcb* tcb)
-{
-	uint32_t *sp;
-	sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
+	.syntax unified
 	
-	*(--sp) = 0x01000000;				// xPSR
-	*(--sp) = (uint32_t)tcb->func;		// PC
-	*(--sp) = (uint32_t)kthread_exit;	// R14(LR)
-	*(--sp) = 0;						// R12
-	*(--sp) = 0;						// R3
-	*(--sp) = 0;						// R2
-	*(--sp) = 0;						// R1
-	*(--sp) = (uint32_t)tcb->arg;		// R0
+	.equ TCB_OFFSET_SP, 0x00
+	
+	.extern	sched_tcb_now
+	.extern	sched_tcb_new
+	
+	.global cpu_irq_enable
+	.global cpu_irq_disable
+	.global PendSV_Handler
+	
+	.thumb
+	.section ".text"
+	.align  4
+	
+cpu_irq_enable:
+	.fnstart
+	.cantunwind
+	CPSIE	I
+	BX		LR
+	.fnend
+	
+cpu_irq_disable:
+	.fnstart
+	.cantunwind
+	CPSID	I
+	BX		LR
+	.fnend
 
-	*(--sp) = 0;						// R11
-	*(--sp) = 0;						// R10
-	*(--sp) = 0;						// R9
-	*(--sp) = 0;						// R8
-	*(--sp) = 0;						// R7
-	*(--sp) = 0;						// R6
-	*(--sp) = 0;						// R5
-	*(--sp) = 0;						// R4
-	tcb->sp = (uint32_t)sp;
-}
-
-void cpu_tcb_switch(void)
-{
-	NVIC_INT_CTRL = PEND_INT_SET;
-}
-
-__asm void PendSV_Handler(void)
-{
-	PRESERVE8
-    CPSID   I
-
-    LDR     R0, =__cpp(&sched_tcb_now)
+PendSV_Handler:
+	.fnstart
+	.cantunwind
+	CPSID   I
+	LDR     R0, =sched_tcb_now
 	LDR     R1, [R0]
-	CBZ     R1, POPSTACK
-    PUSH    {R4-R11}
-    STR     SP, [R1,#TCB_OFFSET_SP]
+	CMP		R1, #0
+	BEQ     POPSTACK
+	PUSH    {R4-R7}
+	MOV     R4, R8
+	MOV     R5, R9
+	MOV     R6, R10
+	MOV     R7, R11
+	PUSH    {R4-R7}
+	MOV		R2,SP
+	STR     R2, [R1,#TCB_OFFSET_SP]
 
-POPSTACK
-    LDR     R2, =__cpp(&sched_tcb_new)
+POPSTACK:
+	LDR     R2, =sched_tcb_new
 	LDR     R3, [R2]
-    STR     R3, [R0]
-	MOV		R2, #0						;TCB_STATE_RUNNING
-	STR		R2, [R3,#TCB_OFFSET_STATE]
-    LDR     SP, [R3,#TCB_OFFSET_SP]
-    POP     {R4-R11}
-    
-    CPSIE   I
-    BX      LR
-	ALIGN
-}
-
-void SysTick_Handler(void)
-{
-	kernel_timetick();
-}
-
+	STR     R3, [R0]
+	MOV		R1, #0						//sched_tcb_new=NULL
+	STR		R1, [R2]
+	LDR     R0, [R3,#TCB_OFFSET_SP]
+	MOV     SP, R0
+	POP     {R4-R7}
+	MOV     R8, R4
+	MOV     R9, R5
+	MOV     R10,R6
+	MOV     R11,R7
+	POP		{R4-R7}
+	CPSIE   I
+	BX      LR
+	.fnend
+	
+	.end
+	

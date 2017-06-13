@@ -24,42 +24,57 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
-#include "kernel.h"
-#include "internal.h"
-
-#define NVIC_INT_CTRL   		(*((volatile uint32_t*)0xE000ED04))
-#define PEND_INT_SET			(1<<28)
-
-void cpu_tcb_init(struct tcb* tcb)
-{
-	uint32_t *sp;
-	sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
+	.syntax unified
 	
-	*(--sp) = 0x01000000;				// xPSR
-	*(--sp) = (uint32_t)tcb->func;		// PC
-	*(--sp) = (uint32_t)kthread_exit;	// R14(LR)
-	*(--sp) = 0;						// R12
-	*(--sp) = 0;						// R3
-	*(--sp) = 0;						// R2
-	*(--sp) = 0;						// R1
-	*(--sp) = (uint32_t)tcb->arg;		// R0
-	*(--sp) = 0;						// R7
-	*(--sp) = 0;						// R6
-	*(--sp) = 0;						// R5
-	*(--sp) = 0;						// R4
-	*(--sp) = 0;						// R11
-	*(--sp) = 0;						// R10
-	*(--sp) = 0;						// R9
-	*(--sp) = 0;						// R8
-	tcb->sp = (uint32_t)sp;
-}
+	.equ TCB_OFFSET_SP, 0x00
+	
+	.extern	sched_tcb_now
+	.extern	sched_tcb_new
+	
+	.global cpu_irq_enable
+	.global cpu_irq_disable
+	.global PendSV_Handler
+	
+	.thumb
+	.section ".text"
+	.align  4
+	
+cpu_irq_enable:
+	.fnstart
+	.cantunwind
+	CPSIE	I
+	BX		LR
+	.fnend
+	
+cpu_irq_disable:
+	.fnstart
+	.cantunwind
+	CPSID	I
+	BX		LR
+	.fnend
 
-void cpu_tcb_switch(void)
-{
-	NVIC_INT_CTRL = PEND_INT_SET;
-}
+PendSV_Handler:
+	.fnstart
+	.cantunwind
+	CPSID   I
+	LDR     R0, =sched_tcb_now
+	LDR     R1, [R0]
+	CBZ     R1, POPSTACK
+	PUSH    {R4-R11}
+	STR     SP, [R1,#TCB_OFFSET_SP]
 
-void SysTick_Handler(void)
-{
-	kernel_timetick();
-}
+POPSTACK:
+	LDR     R2, =sched_tcb_new
+	LDR     R3, [R2]
+	STR     R3, [R0]
+	MOV		R1, #0						//sched_tcb_new=NULL
+	STR		R1, [R2]
+	LDR     SP, [R3,#TCB_OFFSET_SP]
+	POP     {R4-R11}
+    
+	CPSIE   I
+	BX      LR
+	.fnend
+	
+	.end
+	

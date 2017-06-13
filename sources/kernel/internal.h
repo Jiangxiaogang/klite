@@ -29,26 +29,15 @@
 
 #define MAKE_VERSION_CODE(a,b,c)	((a<<24)|(b<<16)|(c))
 
-#define THREAD_PRIORITY_MAX		(+127)
-#define THREAD_PRIORITY_MIN		(-127)
-#define THREAD_STACK_SIZE		(1024)
-
-#define	TCB_STATE_RUNNING		0
-#define	TCB_STATE_READY			1
-#define	TCB_STATE_SLEEP			2
-#define	TCB_STATE_WAIT			3
-#define	TCB_STATE_TIMEDWAIT		4
-#define	TCB_STATE_EXIT			5
-
-#define TCB_OFFSET_SP			0x00
-#define TCB_OFFSET_STATE		0x0C
+#define THREAD_PRIORITY_MAX			(+127)
+#define THREAD_PRIORITY_MIN			(-127)
+#define THREAD_DEFAULT_STKSIZE		(1024)
 
 struct tcb
 {
 	uint32_t sp;
 	uint32_t sp_min;
 	uint32_t sp_max;
-	uint32_t state;
 	void   (*func)(void*);
 	void*    arg;
 	int32_t  prio;
@@ -85,30 +74,21 @@ extern struct tcb* sched_tcb_new;
 extern struct tcb_list sched_list_sleep;
 extern struct tcb_list sched_list_ready;
 
+void kmem_init(uint32_t addr, uint32_t size);
+void kernel_timetick(void);
+
 void ksched_init(void);
 void ksched_lock(void);
 void ksched_unlock(void);
 void ksched_execute(void);
 void ksched_timetick(void);
-void ksched_insert(struct tcb_list * list, struct tcb_node * node);
+void ksched_insert(struct tcb_list *list, struct tcb_node * node);
 
 struct object* kobject_create(uint32_t data);
 void kobject_delete(struct object * obj);
 void kobject_wait(struct object * obj, struct tcb* tcb);
 void kobject_post(struct object * obj, struct tcb* tcb);
 void kobject_timedwait(struct object * obj, struct tcb* tcb, uint32_t timeout);
-
-void cpu_os_init(void);
-void cpu_os_start(void);
-void cpu_os_idle(void);
-void cpu_irq_enable(void);
-void cpu_irq_disable(void);
-void cpu_tcb_init(struct tcb* tcb);
-void cpu_tcb_switch(void);
-
-void kernel_timetick(void);
-
-void kmem_init(uint32_t addr, uint32_t size);
 
 #endif
 

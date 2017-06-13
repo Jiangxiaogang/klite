@@ -24,43 +24,53 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
-#include "kernel.h"
-#include "internal.h"
-
-#define NVIC_INT_CTRL   		(*((volatile uint32_t*)0xE000ED04))
-#define PEND_INT_SET			(1<<28)
-
-void cpu_tcb_init(struct tcb* tcb)
-{
-	uint32_t *sp;
-	sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
+	#define TCB_OFFSET_SP			(0x00)
 	
-	*(--sp) = 0x01000000;				// xPSR
-	*(--sp) = (uint32_t)tcb->func;		// PC
-	*(--sp) = (uint32_t)kthread_exit;	// R14(LR)
-	*(--sp) = 0;						// R12
-	*(--sp) = 0;						// R3
-	*(--sp) = 0;						// R2
-	*(--sp) = 0;						// R1
-	*(--sp) = (uint32_t)tcb->arg;		// R0
+	EXTERN	sched_tcb_now
+	EXTERN	sched_tcb_new
+	
+	PUBLIC cpu_irq_enable
+	PUBLIC cpu_irq_disable
+	PUBLIC PendSV_Handler
+	
+	SECTION .text:CODE:NOROOT(4)
+	
+cpu_irq_enable:
+	CPSIE	I
+	BX		LR
+	
+cpu_irq_disable:
+	CPSID	I
+	BX		LR
+	
+PendSV_Handler:
+	CPSID	I
+	LDR		R0, =sched_tcb_now
+	LDR		R1, [R0]
+	CBZ		R1, POPSTACK
 
-	*(--sp) = 0;						// R11
-	*(--sp) = 0;						// R10
-	*(--sp) = 0;						// R9
-	*(--sp) = 0;						// R8
-	*(--sp) = 0;						// R7
-	*(--sp) = 0;						// R6
-	*(--sp) = 0;						// R5
-	*(--sp) = 0;						// R4
-	tcb->sp = (uint32_t)sp;
-}
+	TST		LR, #0x10					;check fpu
+	IT		EQ
+	VPUSHEQ	{S16-S31}
+	PUSH	{LR}
+	PUSH	{R4-R11}
+	STR		SP, [R1,#TCB_OFFSET_SP]
 
-void cpu_tcb_switch(void)
-{
-	NVIC_INT_CTRL = PEND_INT_SET;
-}
+POPSTACK
+	LDR		R2, =sched_tcb_new
+	LDR		R3, [R2]
+	STR		R3, [R0]
+	MOV		R1, #0						;sched_tcb_new=NULL
+	STR		R1, [R2]
+	LDR		SP, [R3,#TCB_OFFSET_SP]
+	POP		{R4-R11}
+	POP		{LR}
+	TST		LR, #0x10
+	IT		EQ
+	VPOPEQ	{S16-S31}
+	
+	CPSIE	I
+	BX		LR
 
-void SysTick_Handler(void)
-{
-	kernel_timetick();
-}
+	END
+	

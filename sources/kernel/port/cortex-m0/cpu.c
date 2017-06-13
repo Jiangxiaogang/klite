@@ -30,27 +30,12 @@
 #define NVIC_INT_CTRL (*((volatile uint32_t*)0xE000ED04))
 #define PEND_INT_SET  (1<<28)
 
-__asm void cpu_irq_disable(void)
-{
-    CPSID   I
-    BX		LR
-	ALIGN
-}
-
-__asm void cpu_irq_enable(void)
-{
-	CPSIE	I
-    BX		LR
-	ALIGN
-}
-
-
 void cpu_tcb_init(struct tcb* tcb)
 {
 	uint32_t *sp;
 	sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
 	
-	*(--sp) = 0x01000000;				// xPSR(Cortex-M3 says: xPSR bit24=1)
+	*(--sp) = 0x01000000;				// xPSR
 	*(--sp) = (uint32_t)tcb->func;		// PC
 	*(--sp) = (uint32_t)kthread_exit;	// R14(LR)
 	*(--sp) = 0;						// R12
@@ -58,50 +43,21 @@ void cpu_tcb_init(struct tcb* tcb)
 	*(--sp) = 0;						// R2
 	*(--sp) = 0;						// R1
 	*(--sp) = (uint32_t)tcb->arg;		// R0
-
-	*(--sp) = 0xFFFFFFF9;				// LR(EXC_RETURN)
-	*(--sp) = 0;						// R11
-	*(--sp) = 0;						// R10
-	*(--sp) = 0;						// R9
-	*(--sp) = 0;						// R8
+	
 	*(--sp) = 0;						// R7
 	*(--sp) = 0;						// R6
 	*(--sp) = 0;						// R5
 	*(--sp) = 0;						// R4
+	*(--sp) = 0;						// R11
+	*(--sp) = 0;						// R10
+	*(--sp) = 0;						// R9
+	*(--sp) = 0;						// R8
 	tcb->sp = (uint32_t)sp;
 }
 
 void cpu_tcb_switch(void)
 {
 	NVIC_INT_CTRL = PEND_INT_SET;
-}
-
-__asm void PendSV_Handler(void)
-{
-	PRESERVE8
-    CPSID   I
-    LDR     R0, =__cpp(&sched_tcb_now)
-	LDR     R1, [R0]
-	CBZ     R1, POPSTACK
-	TST     LR,#0x10					;CHECK FPU
-	VPUSHEQ	{S16-S31}
-    PUSH    {LR,R4-R11}
-    STR     SP, [R1,#TCB_OFFSET_SP]
-
-POPSTACK
-    LDR     R2, =__cpp(&sched_tcb_new)
-	LDR     R3, [R2]
-    STR     R3, [R0]
-	MOV		R2, #0						;TCB_STATE_RUNNING
-	STR		R2, [R3,#TCB_OFFSET_STATE]
-    LDR     SP, [R3,#TCB_OFFSET_SP]
-    POP     {LR,R4-R11}
-	TST     LR,#0x10
-	VPOPEQ	{S16-S31}
-	
-    CPSIE   I
-    BX      LR
-	ALIGN
 }
 
 void SysTick_Handler(void)

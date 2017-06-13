@@ -27,8 +27,8 @@
 #include "kernel.h"
 #include "internal.h"
 
-#define NVIC_INT_CTRL   		(*((volatile uint32_t*)0xE000ED04))
-#define PEND_INT_SET			(1<<28)
+#define NVIC_INT_CTRL (*((volatile uint32_t*)0xE000ED04))
+#define PEND_INT_SET  (1<<28)
 
 void cpu_tcb_init(struct tcb* tcb)
 {
@@ -43,14 +43,15 @@ void cpu_tcb_init(struct tcb* tcb)
 	*(--sp) = 0;						// R2
 	*(--sp) = 0;						// R1
 	*(--sp) = (uint32_t)tcb->arg;		// R0
-	*(--sp) = 0;						// R7
-	*(--sp) = 0;						// R6
-	*(--sp) = 0;						// R5
-	*(--sp) = 0;						// R4
+
 	*(--sp) = 0;						// R11
 	*(--sp) = 0;						// R10
 	*(--sp) = 0;						// R9
 	*(--sp) = 0;						// R8
+	*(--sp) = 0;						// R7
+	*(--sp) = 0;						// R6
+	*(--sp) = 0;						// R5
+	*(--sp) = 0;						// R4
 	tcb->sp = (uint32_t)sp;
 }
 
@@ -63,3 +64,4 @@ void SysTick_Handler(void)
 {
 	kernel_timetick();
 }
+

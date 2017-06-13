@@ -26,13 +26,14 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "internal.h"
+#include "port.h"
 #include "list.h"
 
 kthread_t kthread_create(void(*func)(void*), void* arg, uint32_t stk_size)
 {
 	struct tcb* tcb;
 	uint32_t tcb_size;
-	stk_size = stk_size ? stk_size : THREAD_STACK_SIZE;
+	stk_size = stk_size ? stk_size : THREAD_DEFAULT_STKSIZE;
 	tcb_size = sizeof(struct tcb) + sizeof(struct tcb_node)*2 + stk_size;
 	tcb = kmem_alloc(tcb_size);
 	if(tcb != NULL)
@@ -42,7 +43,6 @@ kthread_t kthread_create(void(*func)(void*), void* arg, uint32_t stk_size)
 		tcb->prio   = 0;
 		tcb->timeout= 0;
 		tcb->time   = 0;
-		tcb->state  = TCB_STATE_READY;
 		tcb->lwait  = NULL;
 		tcb->lsched = &sched_list_ready;
 		tcb->nsched = (struct tcb_node*)(tcb+1);
@@ -152,7 +152,6 @@ void kthread_sleep(uint32_t tick)
 	{
 		ksched_lock();
 		tcb = sched_tcb_now;
-		tcb->state   = TCB_STATE_SLEEP;
 		tcb->timeout = tick;
 		tcb->lsched  = &sched_list_sleep;
 		list_append(&sched_list_sleep, tcb->nsched);
