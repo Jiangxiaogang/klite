@@ -2911,48 +2911,45 @@
   </group>
   <group>
     <name>port</name>
-    <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\port\iar\arm_cm0.c</name>
+    <group>
+      <name>cortex-m0</name>
       <excluded>
         <configuration>cortex-cm3</configuration>
         <configuration>cortex-cm4</configuration>
       </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\port\iar\arm_cm0_asm.s</name>
-      <excluded>
-        <configuration>cortex-cm3</configuration>
-        <configuration>cortex-cm4</configuration>
-      </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\port\iar\arm_cm3.c</name>
-      <excluded>
-        <configuration>cortex-cm0</configuration>
-        <configuration>cortex-cm4</configuration>
-      </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\port\iar\arm_cm3_asm.s</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\sources\kernel\port\cortex-m0\cpu.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\sources\kernel\port\cortex-m0\cpu_asm_iar.s</name>
+      </file>
+    </group>
+    <group>
+      <name>cortex-m3</name>
       <excluded>
         <configuration>cortex-cm0</configuration>
         <configuration>cortex-cm4</configuration>
       </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\port\iar\arm_cm4.c</name>
+      <file>
+        <name>$PROJ_DIR$\..\..\sources\kernel\port\cortex-m3\cpu.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\sources\kernel\port\cortex-m3\cpu_asm_iar.s</name>
+      </file>
+    </group>
+    <group>
+      <name>cortex-m4</name>
       <excluded>
         <configuration>cortex-cm0</configuration>
         <configuration>cortex-cm3</configuration>
       </excluded>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\port\iar\arm_cm4_asm.s</name>
-      <excluded>
-        <configuration>cortex-cm0</configuration>
-        <configuration>cortex-cm3</configuration>
-      </excluded>
-    </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\sources\kernel\port\cortex-m4\cpu.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\sources\kernel\port\cortex-m4\cpu_asm_iar.s</name>
+      </file>
+    </group>
     <configuration>
       <name>cortex-cm0</name>
       <settings>
