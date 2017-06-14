@@ -74,7 +74,7 @@ POPSTACK:
 	LDR     R2, =sched_tcb_new
 	LDR     R3, [R2]
 	STR     R3, [R0]
-	MOV		R1, #0						//sched_tcb_new=NULL
+	MOVS	R1, #0						//sched_tcb_new=NULL
 	STR		R1, [R2]
 	LDR     R0, [R3,#TCB_OFFSET_SP]
 	MOV     SP, R0
