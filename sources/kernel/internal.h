@@ -29,9 +29,10 @@
 
 #define MAKE_VERSION_CODE(a,b,c)	((a<<24)|(b<<16)|(c))
 
+#define MEMORY_ALIGN_BYTE			(4)
 #define THREAD_PRIORITY_MAX			(+127)
 #define THREAD_PRIORITY_MIN			(-127)
-#define THREAD_DEFAULT_STKSIZE		(1024)
+#define THREAD_DEFAULT_STKSIZE		(256)
 
 struct tcb
 {
@@ -82,13 +83,11 @@ void ksched_lock(void);
 void ksched_unlock(void);
 void ksched_execute(void);
 void ksched_timetick(void);
-void ksched_insert(struct tcb_list *list, struct tcb_node * node);
+void ksched_insert(struct tcb_list* list, struct tcb_node* node);
 
-struct object* kobject_create(uint32_t data);
-void kobject_delete(struct object * obj);
-void kobject_wait(struct object * obj, struct tcb* tcb);
-void kobject_post(struct object * obj, struct tcb* tcb);
-void kobject_timedwait(struct object * obj, struct tcb* tcb, uint32_t timeout);
+void kobject_init(struct object* obj);
+void kobject_post(struct object* obj, struct tcb* tcb);
+void kobject_wait(struct object* obj, struct tcb* tcb);
+void kobject_timedwait(struct object* obj, struct tcb* tcb, uint32_t timeout);
 
 #endif
-

@@ -28,22 +28,11 @@
 #include "internal.h"
 #include "list.h"
 
-struct object* kobject_create(uint32_t data)
+void kobject_init(struct object* obj)
 {
-	struct object* obj;
-	obj = kmem_alloc(sizeof(struct object));
-	if(obj != NULL)
-	{
-		obj->head = NULL;
-		obj->tail = NULL;
-		obj->data = data;
-	}
-	return obj;
-}
-
-void kobject_delete(struct object* obj)
-{
-	kmem_free(obj);
+	obj->head = NULL;
+	obj->tail = NULL;
+	obj->data = 0;
 }
 
 void kobject_wait(struct object* obj, struct tcb* tcb)

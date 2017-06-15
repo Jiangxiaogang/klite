@@ -29,12 +29,19 @@
 
 kevent_t kevent_create(int state)
 {
-	return (kevent_t)kobject_create(state);
+	struct object* obj;
+	obj = kmem_alloc(sizeof(struct object));
+	if(obj != NULL)
+	{
+		kobject_init(obj);
+		obj->data = state;
+	}
+	return (kevent_t)obj;
 }
 
 void kevent_destroy(kevent_t event)
 {
-	kobject_delete((struct object*)event);
+	kmem_free(event);
 }
 
 void kevent_wait(kevent_t event)

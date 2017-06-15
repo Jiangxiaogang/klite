@@ -29,12 +29,18 @@
 
 kmutex_t kmutex_create(void)
 {
-	return (kmutex_t)kobject_create(0);
+	struct object* obj;
+	obj = kmem_alloc(sizeof(struct object));
+	if(obj != NULL)
+	{
+		kobject_init(obj);
+	}
+	return (kmutex_t)obj;
 }
 
 void kmutex_destroy(kmutex_t mutex)
 {
-	kobject_delete((struct object*)mutex);
+	kmem_free(mutex);
 }
 
 void kmutex_lock(kmutex_t mutex)

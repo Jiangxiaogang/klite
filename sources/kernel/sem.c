@@ -29,12 +29,19 @@
 
 ksem_t ksem_create(uint32_t value)
 {
-	return (ksem_t)kobject_create(value);
+	struct object* obj;
+	obj = kmem_alloc(sizeof(struct object));
+	if(obj != NULL)
+	{
+		kobject_init(obj);
+		obj->data = value;
+	}
+	return (ksem_t)obj;
 }
 
 void ksem_destroy(ksem_t sem)
 {
-	kobject_delete((struct object*)sem);
+	kmem_free(sem);
 }
 
 void ksem_wait(ksem_t sem)
