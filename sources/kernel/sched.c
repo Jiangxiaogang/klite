@@ -67,6 +67,10 @@ static void ksched_preempt(void)
 	{
 		return;
 	}
+	if(sched_tcb_now->lsched != NULL)
+	{
+		return;
+	}
 	node = sched_list_ready.head;
 	if(node == NULL)
 	{
@@ -78,8 +82,8 @@ static void ksched_preempt(void)
 	}
 	node->tcb->lsched = NULL;
 	list_remove(&sched_list_ready, node);
-	ksched_insert(&sched_list_ready, sched_tcb_now->nsched);
 	sched_tcb_now->lsched = &sched_list_ready;
+	ksched_insert(&sched_list_ready, sched_tcb_now->nsched);
 	sched_tcb_new = node->tcb;
 	cpu_tcb_switch();
 }
@@ -117,7 +121,7 @@ void ksched_execute(void)
 	node = sched_list_ready.head;
 	node->tcb->lsched = NULL;
 	list_remove(&sched_list_ready, node);
-	if(node->tcb != sched_tcb_now)
+	if(sched_tcb_now != node->tcb)
 	{
 		sched_tcb_new = node->tcb;
 		cpu_tcb_switch();
