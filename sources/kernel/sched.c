@@ -71,6 +71,10 @@ static void ksched_preempt(void)
 	{
 		return;
 	}
+	if(sched_tcb_now->lwait != NULL)
+	{
+		return;
+	}
 	node = sched_list_ready.head;
 	if(node == NULL)
 	{
