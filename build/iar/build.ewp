@@ -128,7 +128,7 @@
         <option>
           <name>GBECoreSlave</name>
           <version>24</version>
-          <state>38</state>
+          <state>34</state>
         </option>
         <option>
           <name>OGUseCmsis</name>
@@ -145,7 +145,7 @@
         <option>
           <name>CoreVariant</name>
           <version>24</version>
-          <state>38</state>
+          <state>34</state>
         </option>
         <option>
           <name>GFPUDeviceSlave</name>
@@ -168,7 +168,7 @@
         <option>
           <name>GFPUCoreSlave2</name>
           <version>24</version>
-          <state>38</state>
+          <state>34</state>
         </option>
       </data>
     </settings>
@@ -951,7 +951,7 @@
         </option>
         <option>
           <name>IarchiveOutput</name>
-          <state>$EXE_DIR$\kernel_cm3.a</state>
+          <state>$EXE_DIR$\kernel_cm0.a</state>
         </option>
       </data>
     </settings>
