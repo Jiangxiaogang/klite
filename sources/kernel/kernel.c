@@ -28,7 +28,7 @@
 #include "internal.h"
 #include "port.h"
 
-#define KERNEL_VERSION_CODE			MAKE_VERSION_CODE(2,2,4)
+#define KERNEL_VERSION_CODE			MAKE_VERSION_CODE(2,2,5)
 
 static uint32_t  tick_count;
 static kthread_t idle_thread;
@@ -43,7 +43,6 @@ static void kernel_idle(void* arg)
 
 void kernel_init(uint32_t mem_addr, uint32_t mem_size)
 {
-	tick_count = 0;
 	cpu_os_init();
 	ksched_init();
 	kmem_init(mem_addr, mem_size);
@@ -53,6 +52,7 @@ void kernel_init(uint32_t mem_addr, uint32_t mem_size)
 
 void kernel_start(void)
 {
+	tick_count = 0;
 	cpu_os_start();
 	ksched_execute();
 	cpu_os_idle();

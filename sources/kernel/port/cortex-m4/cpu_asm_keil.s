@@ -24,7 +24,8 @@
 ;* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;* SOFTWARE.
 ;******************************************************************************/
-TCB_OFFSET_SP	EQU 0x00
+TCB_OFFSET_SP		EQU 0x00
+TCB_OFFSET_STATE	EQU 0x20
 
 	IMPORT	sched_tcb_now
 	IMPORT	sched_tcb_new
@@ -37,37 +38,37 @@ TCB_OFFSET_SP	EQU 0x00
 	PRESERVE8
 	
 cpu_irq_enable	PROC
-	CPSIE	I
-	BX		LR
+	CPSIE		I
+	BX			LR
 	ENDP
 	
 cpu_irq_disable	PROC
-	CPSID	I
-	BX		LR
+	CPSID		I
+	BX			LR
 	ENDP
 	
 PendSV_Handler	PROC
-	CPSID	I
-	LDR		R0, =sched_tcb_now
-	LDR		R1, [R0]
-	CBZ		R1, POPSTACK
-	TST		LR, #0x10					;check fpu
-	VPUSHEQ	{S16-S31}
-	PUSH	{LR,R4-R11}
-	STR		SP, [R1,#TCB_OFFSET_SP]
+	CPSID		I
+	LDR			R0, =sched_tcb_now
+	LDR			R1, [R0]
+	CBZ			R1, POPSTACK
+	TST			LR, #0x10
+	VPUSHEQ		{S16-S31}
+	PUSH		{LR,R4-R11}
+	STR			SP, [R1,#TCB_OFFSET_SP]
 POPSTACK
-	LDR		R2, =sched_tcb_new
-	LDR		R3, [R2]
-	STR		R3, [R0]
-	MOV		R1, #0						;sched_tcb_new=NULL
-	STR		R1, [R2]
-	LDR		SP, [R3,#TCB_OFFSET_SP]
-	POP		{R4-R11}
-	POP		{LR}
-	TST		LR, #0x10
-	VPOPEQ	{S16-S31}
-	CPSIE	I
-	BX		LR
+	LDR			R2, =sched_tcb_new
+	LDR			R3, [R2]
+	STR			R3, [R0]
+	MOV			R1, #0
+	STR			R1, [R3,#TCB_OFFSET_STATE]
+	LDR			SP, [R3,#TCB_OFFSET_SP]
+	POP			{R4-R11}
+	POP			{LR}
+	TST			LR, #0x10
+	VPOPEQ		{S16-S31}
+	CPSIE		I
+	BX			LR
 	ENDP
 
 	END

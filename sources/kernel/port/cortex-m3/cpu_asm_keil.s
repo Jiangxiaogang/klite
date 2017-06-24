@@ -24,7 +24,8 @@
 ;* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;* SOFTWARE.
 ;******************************************************************************/
-TCB_OFFSET_SP	EQU 0x00
+TCB_OFFSET_SP		EQU 0x00
+TCB_OFFSET_STATE	EQU 0x20
 
 	IMPORT	sched_tcb_now
 	IMPORT	sched_tcb_new
@@ -54,12 +55,12 @@ PendSV_Handler	PROC
 	PUSH    {R4-R11}
 	STR     SP, [R1,#TCB_OFFSET_SP]
 POPSTACK
-	LDR     R1, =sched_tcb_new
-	LDR     R2, [R1]
-	STR     R2, [R0]
-	MOV	R3, #0						;sched_tcb_new=NULL
-	STR	R3, [R1]
-	LDR     SP, [R2, #TCB_OFFSET_SP]
+	LDR     R2, =sched_tcb_new
+	LDR     R3, [R2]
+	STR     R3, [R0]
+	MOV	R1, #0
+	STR	R1, [R3,#TCB_OFFSET_STATE]
+	LDR     SP, [R3,#TCB_OFFSET_SP]
 	POP     {R4-R11}
 	CPSIE   I
 	BX      LR

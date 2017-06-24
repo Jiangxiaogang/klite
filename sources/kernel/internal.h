@@ -34,6 +34,15 @@
 #define THREAD_PRIORITY_MIN			(-127)
 #define THREAD_DEFAULT_STKSIZE		(256)
 
+#define	TCB_STATE_RUNNING		0
+#define	TCB_STATE_READY			1
+#define	TCB_STATE_SLEEP			2
+#define	TCB_STATE_WAIT			3
+#define	TCB_STATE_TIMEDWAIT		4
+#define	TCB_STATE_SUSPEND		5
+#define TCB_STATE_SWITCH		6
+#define TCB_STATE_EXIT			7
+
 struct tcb
 {
 	uint32_t sp;
@@ -44,6 +53,7 @@ struct tcb
 	int32_t  prio;
 	uint32_t time;
 	uint32_t timeout;
+	uint32_t state;
 	struct tcb_node* nsched;
 	struct tcb_node* nwait;
 	struct tcb_list* lsched;
