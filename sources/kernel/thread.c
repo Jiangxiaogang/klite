@@ -26,8 +26,8 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "internal.h"
-#include "port.h"
 #include "list.h"
+#include "port.h"
 
 kthread_t kthread_create(void(*func)(void*), void* arg, uint32_t stk_size)
 {
@@ -65,7 +65,7 @@ void kthread_destroy(kthread_t thread)
 	struct tcb* tcb;
 	tcb = (struct tcb*)thread;
 	ksched_lock();
-	tcb->state  = TCB_STATE_EXIT;
+	tcb->state |= TCB_STATE_EXIT;
 	if(tcb->lwait)
 	{
 		list_remove(tcb->lwait, tcb->nwait);
@@ -83,7 +83,7 @@ void kthread_suspend(kthread_t thread)
 	struct tcb* tcb;
 	tcb = (struct tcb*)thread;
 	ksched_lock();
-	tcb->state  = TCB_STATE_SUSPEND;
+	tcb->state |= TCB_STATE_SUSPEND;
 	if(tcb->lwait)
 	{
 		list_remove(tcb->lwait, tcb->nwait);
@@ -100,7 +100,7 @@ void kthread_resume(kthread_t thread)
 	struct tcb* tcb;
 	tcb = (struct tcb*)thread;
 	ksched_lock();
-	tcb->state  = TCB_STATE_READY;
+	tcb->state &= ~TCB_STATE_SUSPEND;
 	if(tcb->lwait)
 	{
 		ksched_insert(tcb->lwait, tcb->nwait);
@@ -138,7 +138,7 @@ uint32_t kthread_time(kthread_t thread)
 void kthread_exit(void)
 {
 	ksched_lock();
-	sched_tcb_now->state  = TCB_STATE_EXIT;
+	sched_tcb_now->state |= TCB_STATE_EXIT;
 	kmem_free(sched_tcb_now);
 	sched_tcb_now = NULL;
 	ksched_unlock();
@@ -165,4 +165,3 @@ void kthread_sleep(uint32_t tick)
 		ksched_execute();
 	}
 }
-

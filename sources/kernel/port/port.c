@@ -26,15 +26,15 @@
 ******************************************************************************/
 void cpu_os_init(void)
 {
-	//TODO: Init CPU clock here.
+	//TODO: init cpu clocks.
 }
 
 void cpu_os_start(void)
 {
-	//TODO: Init PendSV and SysTick here.
+	//TODO: init systick and pendsv.
 }
 
 void cpu_os_idle(void)
 {
-	//TODO: Enter idle here.
+	//TODO: cpu enter idle.
 }

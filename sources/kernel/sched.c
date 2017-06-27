@@ -26,8 +26,8 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "internal.h"
-#include "port.h"
 #include "list.h"
+#include "port.h"
 
 struct tcb*      sched_tcb_now;
 struct tcb*      sched_tcb_new;

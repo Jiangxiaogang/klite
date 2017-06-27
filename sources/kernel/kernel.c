@@ -28,7 +28,7 @@
 #include "internal.h"
 #include "port.h"
 
-#define KERNEL_VERSION_CODE			MAKE_VERSION_CODE(2,2,5)
+#define KERNEL_VERSION_CODE			MAKE_VERSION_CODE(2,2,6)
 
 static uint32_t  tick_count;
 static kthread_t idle_thread;
