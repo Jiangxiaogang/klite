@@ -71,7 +71,10 @@ static void ksched_timer(void)
 static void ksched_preempt(void)
 {
 	struct tcb_node* node;
-	
+	if(sched_tcb_now->state != TCB_STATE_RUNNING)
+	{
+		return
+	}
 	node = sched_list_ready.head;
 	if(node == NULL)
 	{
@@ -97,10 +100,7 @@ void ksched_timetick(void)
 		if(sched_locked == 0)
 		{
 			ksched_timer();
-			if(sched_tcb_now->state == TCB_STATE_RUNNING)
-			{
-				ksched_preempt();
-			}
+			ksched_preempt();
 		}
 	}
 }
