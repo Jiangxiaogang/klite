@@ -73,7 +73,7 @@ static void ksched_preempt(void)
 	struct tcb_node* node;
 	if(sched_tcb_now->state != TCB_STATE_RUNNING)
 	{
-		return
+		return;
 	}
 	node = sched_list_ready.head;
 	if(node == NULL)
