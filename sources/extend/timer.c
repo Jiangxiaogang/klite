@@ -97,6 +97,18 @@ timer_t timer_create(int id, int elapse, void(*callback)(int))
 	return node;
 }
 
+//删除定时器
+void timer_delete(timer_t timer)
+{
+	struct timer* node;
+	node = (struct timer*)timer;
+	kmutex_lock(list.mutex);
+	list_remove(&list, node);
+	kmutex_unlock(list.mutex);
+	kevent_post(list.event);
+	kmem_free(node);
+}
+
 //初始化定时器模块
 //设置定时器线程的堆栈大小和线程优先级
 void timer_init(uint32_t stk_size, int prio)
