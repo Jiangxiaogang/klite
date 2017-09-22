@@ -27,57 +27,57 @@
 #ifndef __INTERNAL_H
 #define __INTERNAL_H
 
-#define MAKE_VERSION_CODE(a,b,c)	((a<<24)|(b<<16)|(c))
+#define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))
 
-#define MEMORY_ALIGN_BYTE			(4)
-#define THREAD_PRIORITY_MAX			(+127)
-#define THREAD_PRIORITY_MIN			(-127)
-#define THREAD_DEFAULT_STKSIZE		(256)
+#define MEMORY_ALIGN_BYTE           (4)
+#define THREAD_PRIORITY_MAX         (+127)
+#define THREAD_PRIORITY_MIN         (-127)
+#define THREAD_DEFAULT_STKSIZE      (256)
 
-#define	TCB_STATE_RUNNING		0x00000000
-#define	TCB_STATE_READY			0x00000001
-#define	TCB_STATE_SLEEP			0x00000002
-#define	TCB_STATE_WAIT			0x00000003
-#define	TCB_STATE_TIMEDWAIT		0x00000004
-#define TCB_STATE_SWITCH		0x00000005
-#define	TCB_STATE_SUSPEND		0x40000000
-#define TCB_STATE_EXIT			0x80000000
+#define TCB_STATE_RUNNING       0x00000000
+#define TCB_STATE_READY         0x00000001
+#define TCB_STATE_SLEEP         0x00000002
+#define TCB_STATE_WAIT          0x00000003
+#define TCB_STATE_TIMEDWAIT     0x00000004
+#define TCB_STATE_SWITCH        0x00000005
+#define TCB_STATE_SUSPEND       0x40000000
+#define TCB_STATE_EXIT          0x80000000
 
 struct tcb
 {
-	uint32_t sp;
-	uint32_t sp_min;
-	uint32_t sp_max;
-	void   (*func)(void*);
-	void*    arg;
-	int32_t  prio;
-	uint32_t time;
-	uint32_t timeout;
-	uint32_t state;
-	struct tcb_node* nsched;
-	struct tcb_node* nwait;
-	struct tcb_list* lsched;
-	struct tcb_list* lwait;
+    uint32_t sp;
+    uint32_t sp_min;
+    uint32_t sp_max;
+    void   (*func)(void*);
+    void*    arg;
+    int32_t  prio;
+    uint32_t time;
+    uint32_t timeout;
+    uint32_t state;
+    struct tcb_node* nsched;
+    struct tcb_node* nwait;
+    struct tcb_list* lsched;
+    struct tcb_list* lwait;
 };
 
 struct tcb_node
 {
-	struct tcb_node* prev;
-	struct tcb_node* next;
-	struct tcb* tcb;
+    struct tcb_node* prev;
+    struct tcb_node* next;
+    struct tcb* tcb;
 };
 
 struct tcb_list
 {
-	struct tcb_node* head;
-	struct tcb_node* tail;
+    struct tcb_node* head;
+    struct tcb_node* tail;
 };
 
 struct object
 {
-	struct tcb_node* head;
-	struct tcb_node* tail;
-	uint32_t data;
+    struct tcb_node* head;
+    struct tcb_node* tail;
+    uint32_t data;
 };
 
 extern struct tcb* sched_tcb_now;

@@ -24,65 +24,65 @@
 ;* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;* SOFTWARE.
 ;******************************************************************************/
-	.syntax unified
-	
-	.equ TCB_OFFSET_SP,    0x00
-	.equ TCB_OFFSET_STATE, 0x20
-	
-	.extern	sched_tcb_now
-	.extern	sched_tcb_new
-	
-	.global cpu_irq_enable
-	.global cpu_irq_disable
-	.global PendSV_Handler
-	
-	.thumb
-	.section ".text"
-	.align  4
-	
+    .syntax unified
+    
+    .equ TCB_OFFSET_SP,    0x00
+    .equ TCB_OFFSET_STATE, 0x20
+    
+    .extern sched_tcb_now
+    .extern sched_tcb_new
+    
+    .global cpu_irq_enable
+    .global cpu_irq_disable
+    .global PendSV_Handler
+    
+    .thumb
+    .section ".text"
+    .align  4
+    
 cpu_irq_enable:
-	.fnstart
-	.cantunwind
-	CPSIE		I
-	BX		LR
-	.fnend
-	
+    .fnstart
+    .cantunwind
+    CPSIE       I
+    BX      LR
+    .fnend
+    
 cpu_irq_disable:
-	.fnstart
-	.cantunwind
-	CPSID		I
-	BX		LR
-	.fnend
+    .fnstart
+    .cantunwind
+    CPSID       I
+    BX      LR
+    .fnend
 
 PendSV_Handler:
-	.fnstart
-	.cantunwind
-	CPSID		I
-	LDR		R0, =sched_tcb_now
-	LDR		R1, [R0]
-	CBZ		R1, POPSTACK
-	TST		LR, #0x10
-	IT		EQ
-	VPUSHEQ		{S16-S31}
-	PUSH		{LR}
-	PUSH		{R4-R11}
-	STR		SP, [R1,#TCB_OFFSET_SP]
+    .fnstart
+    .cantunwind
+    CPSID       I
+    LDR     R0, =sched_tcb_now
+    LDR     R1, [R0]
+    CBZ     R1, POPSTACK
+    TST     LR, #0x10
+    IT      EQ
+    VPUSHEQ     {S16-S31}
+    PUSH        {LR}
+    PUSH        {R4-R11}
+    STR     SP, [R1,#TCB_OFFSET_SP]
 
 POPSTACK:
-	LDR		R2, =sched_tcb_new
-	LDR		R3, [R2]
-	STR		R3, [R0]
-	MOV		R1, #0
-	STR		R1, [R3,#TCB_OFFSET_STATE]
-	LDR		SP, [R3,#TCB_OFFSET_SP]
-	POP		{R4-R11}
-	POP		{LR}
-	TST		LR, #0x10
-	IT		EQ
-	VPOPEQ	{S16-S31}
-	CPSIE	I
-	BX		LR
-	.fnend
-	
-	.end
-	
+    LDR     R2, =sched_tcb_new
+    LDR     R3, [R2]
+    STR     R3, [R0]
+    MOV     R1, #0
+    STR     R1, [R3,#TCB_OFFSET_STATE]
+    LDR     SP, [R3,#TCB_OFFSET_SP]
+    POP     {R4-R11}
+    POP     {LR}
+    TST     LR, #0x10
+    IT      EQ
+    VPOPEQ  {S16-S31}
+    CPSIE   I
+    BX      LR
+    .fnend
+    
+    .end
+    

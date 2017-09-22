@@ -29,14 +29,14 @@
 
 struct node
 {
-	struct node* prev;
-	struct node* next;
+    struct node* prev;
+    struct node* next;
 };
 
 struct list
 {
-	struct node* head;
-	struct node* tail;
+    struct node* head;
+    struct node* tail;
 };
 
 void list_init(void* list);

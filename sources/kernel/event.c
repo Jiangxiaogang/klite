@@ -29,77 +29,77 @@
 
 kevent_t kevent_create(int state)
 {
-	struct object* obj;
-	obj = kmem_alloc(sizeof(struct object));
-	if(obj != NULL)
-	{
-		kobject_init(obj);
-		obj->data = state;
-	}
-	return (kevent_t)obj;
+    struct object* obj;
+    obj = kmem_alloc(sizeof(struct object));
+    if(obj != NULL)
+    {
+        kobject_init(obj);
+        obj->data = state;
+    }
+    return (kevent_t)obj;
 }
 
 void kevent_destroy(kevent_t event)
 {
-	kmem_free(event);
+    kmem_free(event);
 }
 
 void kevent_wait(kevent_t event)
 {
-	struct object* obj;
-	obj = (struct object*)event;
-	
-	ksched_lock();
-	if(obj->data != 0)
-	{
-		obj->data = 0;
-		ksched_unlock();
-		return;
-	}
-	kobject_wait(obj, sched_tcb_now);
-	ksched_unlock();
-	ksched_execute();
+    struct object* obj;
+    obj = (struct object*)event;
+    
+    ksched_lock();
+    if(obj->data != 0)
+    {
+        obj->data = 0;
+        ksched_unlock();
+        return;
+    }
+    kobject_wait(obj, sched_tcb_now);
+    ksched_unlock();
+    ksched_execute();
 }
 
 int kevent_timedwait(kevent_t event, uint32_t timeout)
 {
-	struct object* obj;
-	obj = (struct object*)event;
-	
-	ksched_lock();
-	if(obj->data != 0)
-	{
-		obj->data = 0;
-		ksched_unlock();
-		return 1;
-	}
-	if(timeout == 0)
-	{
-		ksched_unlock();
-		return 0;
-	}
-	kobject_timedwait(obj, sched_tcb_now, timeout);
-	ksched_unlock();
-	ksched_execute();
-	return (sched_tcb_now->timeout != 0);
+    struct object* obj;
+    obj = (struct object*)event;
+    
+    ksched_lock();
+    if(obj->data != 0)
+    {
+        obj->data = 0;
+        ksched_unlock();
+        return 1;
+    }
+    if(timeout == 0)
+    {
+        ksched_unlock();
+        return 0;
+    }
+    kobject_timedwait(obj, sched_tcb_now, timeout);
+    ksched_unlock();
+    ksched_execute();
+    return (sched_tcb_now->timeout != 0);
 }
 
 void kevent_post(kevent_t event)
 {
-	struct object* obj;
-	obj = (struct object*)event;
-	
-	ksched_lock();
-	if(obj->head == NULL)
-	{
-		obj->data = 1;
-		ksched_unlock();
-		return;
-	}
-	while(obj->head)
-	{
-		kobject_post(obj, obj->head->tcb);
-	}
-	ksched_unlock();
+    struct object* obj;
+    obj = (struct object*)event;
+    
+    ksched_lock();
+    if(obj->head == NULL)
+    {
+        obj->data = 1;
+        ksched_unlock();
+        return;
+    }
+    while(obj->head)
+    {
+        kobject_post(obj, obj->head->tcb);
+    }
+    ksched_unlock();
 }
 

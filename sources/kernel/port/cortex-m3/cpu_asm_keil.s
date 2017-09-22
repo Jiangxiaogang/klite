@@ -24,47 +24,47 @@
 ;* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;* SOFTWARE.
 ;******************************************************************************/
-TCB_OFFSET_SP		EQU 0x00
-TCB_OFFSET_STATE	EQU 0x20
+TCB_OFFSET_SP       EQU 0x00
+TCB_OFFSET_STATE    EQU 0x20
 
-	IMPORT	sched_tcb_now
-	IMPORT	sched_tcb_new
+    IMPORT  sched_tcb_now
+    IMPORT  sched_tcb_new
 
-	EXPORT	cpu_irq_enable
-	EXPORT	cpu_irq_disable
-	EXPORT	PendSV_Handler
-	
-	AREA |.text|, CODE, READONLY, ALIGN=2
-	PRESERVE8
-	
-cpu_irq_enable	PROC
-	CPSIE	I
-	BX		LR
-	ENDP
-	
-cpu_irq_disable	PROC
-	CPSID	I
-	BX		LR
-	ENDP
+    EXPORT  cpu_irq_enable
+    EXPORT  cpu_irq_disable
+    EXPORT  PendSV_Handler
+    
+    AREA |.text|, CODE, READONLY, ALIGN=2
+    PRESERVE8
+    
+cpu_irq_enable  PROC
+    CPSIE   I
+    BX      LR
+    ENDP
+    
+cpu_irq_disable PROC
+    CPSID   I
+    BX      LR
+    ENDP
 
-PendSV_Handler	PROC
-	CPSID   I
-	LDR     R0, =sched_tcb_now
-	LDR     R1, [R0]
-	CBZ     R1, POPSTACK
-	PUSH    {R4-R11}
-	STR     SP, [R1,#TCB_OFFSET_SP]
+PendSV_Handler  PROC
+    CPSID   I
+    LDR     R0, =sched_tcb_now
+    LDR     R1, [R0]
+    CBZ     R1, POPSTACK
+    PUSH    {R4-R11}
+    STR     SP, [R1,#TCB_OFFSET_SP]
 POPSTACK
-	LDR     R2, =sched_tcb_new
-	LDR     R3, [R2]
-	STR     R3, [R0]
-	MOV	R1, #0
-	STR	R1, [R3,#TCB_OFFSET_STATE]
-	LDR     SP, [R3,#TCB_OFFSET_SP]
-	POP     {R4-R11}
-	CPSIE   I
-	BX      LR
-	ENDP
+    LDR     R2, =sched_tcb_new
+    LDR     R3, [R2]
+    STR     R3, [R0]
+    MOV R1, #0
+    STR R1, [R3,#TCB_OFFSET_STATE]
+    LDR     SP, [R3,#TCB_OFFSET_SP]
+    POP     {R4-R11}
+    CPSIE   I
+    BX      LR
+    ENDP
 
-	END
-	
+    END
+    

@@ -30,37 +30,37 @@
 
 void kobject_init(struct object* obj)
 {
-	obj->head = NULL;
-	obj->tail = NULL;
-	obj->data = 0;
+    obj->head = NULL;
+    obj->tail = NULL;
+    obj->data = 0;
 }
 
 void kobject_wait(struct object* obj, struct tcb* tcb)
 {
-	tcb->state = TCB_STATE_WAIT;
-	tcb->lwait = (struct tcb_list*)obj;
-	ksched_insert((struct tcb_list*)obj, tcb->nwait);
+    tcb->state = TCB_STATE_WAIT;
+    tcb->lwait = (struct tcb_list*)obj;
+    ksched_insert((struct tcb_list*)obj, tcb->nwait);
 }
 
 void kobject_post(struct object* obj, struct tcb* tcb)
 {
-	if(tcb->lsched)
-	{
-		list_remove(tcb->lsched, tcb->nsched);
-	}
-	tcb->state  = TCB_STATE_READY;
-	tcb->lwait  = NULL;
-	tcb->lsched = &sched_list_ready;
-	list_remove(obj, tcb->nwait);
-	ksched_insert(&sched_list_ready, tcb->nsched);
+    if(tcb->lsched)
+    {
+        list_remove(tcb->lsched, tcb->nsched);
+    }
+    tcb->state  = TCB_STATE_READY;
+    tcb->lwait  = NULL;
+    tcb->lsched = &sched_list_ready;
+    list_remove(obj, tcb->nwait);
+    ksched_insert(&sched_list_ready, tcb->nsched);
 }
 
 void kobject_timedwait(struct object* obj, struct tcb* tcb, uint32_t timeout)
 {
-	tcb->timeout = timeout;
-	tcb->state   = TCB_STATE_TIMEDWAIT;
-	tcb->lwait   = (struct tcb_list*)obj;
-	tcb->lsched  = &sched_list_sleep;
-	list_append(&sched_list_sleep, tcb->nsched);
-	ksched_insert((struct tcb_list*)obj, tcb->nwait);
+    tcb->timeout = timeout;
+    tcb->state   = TCB_STATE_TIMEDWAIT;
+    tcb->lwait   = (struct tcb_list*)obj;
+    tcb->lsched  = &sched_list_sleep;
+    list_append(&sched_list_sleep, tcb->nsched);
+    ksched_insert((struct tcb_list*)obj, tcb->nwait);
 }

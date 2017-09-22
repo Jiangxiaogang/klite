@@ -32,37 +32,37 @@
 
 void cpu_tcb_init(struct tcb* tcb)
 {
-	uint32_t *sp;
-	sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
-	
-	*(--sp) = 0x01000000;				// xPSR
-	*(--sp) = (uint32_t)tcb->func;		// PC
-	*(--sp) = (uint32_t)kthread_exit;	// R14(LR)
-	*(--sp) = 0;						// R12
-	*(--sp) = 0;						// R3
-	*(--sp) = 0;						// R2
-	*(--sp) = 0;						// R1
-	*(--sp) = (uint32_t)tcb->arg;		// R0
+    uint32_t *sp;
+    sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
+    
+    *(--sp) = 0x01000000;               // xPSR
+    *(--sp) = (uint32_t)tcb->func;      // PC
+    *(--sp) = (uint32_t)kthread_exit;   // R14(LR)
+    *(--sp) = 0;                        // R12
+    *(--sp) = 0;                        // R3
+    *(--sp) = 0;                        // R2
+    *(--sp) = 0;                        // R1
+    *(--sp) = (uint32_t)tcb->arg;       // R0
 
-	*(--sp) = 0xFFFFFFF9;				// LR(EXC_RETURN)
-	*(--sp) = 0;						// R11
-	*(--sp) = 0;						// R10
-	*(--sp) = 0;						// R9
-	*(--sp) = 0;						// R8
-	*(--sp) = 0;						// R7
-	*(--sp) = 0;						// R6
-	*(--sp) = 0;						// R5
-	*(--sp) = 0;						// R4
-	tcb->sp = (uint32_t)sp;
+    *(--sp) = 0xFFFFFFF9;               // LR(EXC_RETURN)
+    *(--sp) = 0;                        // R11
+    *(--sp) = 0;                        // R10
+    *(--sp) = 0;                        // R9
+    *(--sp) = 0;                        // R8
+    *(--sp) = 0;                        // R7
+    *(--sp) = 0;                        // R6
+    *(--sp) = 0;                        // R5
+    *(--sp) = 0;                        // R4
+    tcb->sp = (uint32_t)sp;
 }
 
 void cpu_tcb_switch(void)
 {
-	NVIC_INT_CTRL = PEND_INT_SET;
+    NVIC_INT_CTRL = PEND_INT_SET;
 }
 
 void SysTick_Handler(void)
 {
-	kernel_timetick();
+    kernel_timetick();
 }
 

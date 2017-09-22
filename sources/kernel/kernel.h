@@ -30,74 +30,74 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef void*	kthread_t;
-typedef void*	kmutex_t;
-typedef void*	kevent_t;
-typedef void*	ksem_t;
+typedef void*   kthread_t;
+typedef void*   kmutex_t;
+typedef void*   kevent_t;
+typedef void*   ksem_t;
 
 /******************************************************************************
 * kernel
 ******************************************************************************/
-void 		kernel_init(uint32_t mem_addr, uint32_t mem_size);
-void 		kernel_start(void);
-uint32_t	kernel_time(void);
-uint32_t	kernel_idletime(void);
-uint32_t	kernel_version(void);
+void        kernel_init(uint32_t mem_addr, uint32_t mem_size);
+void        kernel_start(void);
+uint32_t    kernel_time(void);
+uint32_t    kernel_idletime(void);
+uint32_t    kernel_version(void);
 
 /******************************************************************************
 * memory
 ******************************************************************************/
-void*  		kmem_alloc(uint32_t size);
-void   		kmem_free(void* mem);
-void   		kmem_info(uint32_t* total, uint32_t* used);
+void*       kmem_alloc(uint32_t size);
+void        kmem_free(void* mem);
+void        kmem_info(uint32_t* total, uint32_t* used);
 
 /******************************************************************************
 * thread
 ******************************************************************************/
-kthread_t 	kthread_create(void(*func)(void*), void* arg, uint32_t stk_size);
-void   		kthread_destroy(kthread_t thread);
-void		kthread_suspend(kthread_t thread);
-void		kthread_resume(kthread_t thread);
-void 		kthread_setprio(kthread_t thread, int prio);
-int	        kthread_getprio(kthread_t thread);
-uint32_t	kthread_time(kthread_t thread);
-void		kthread_sleep(uint32_t tick);
-void   		kthread_exit(void);
-kthread_t 	kthread_self(void);
+kthread_t   kthread_create(void(*func)(void*), void* arg, uint32_t stk_size);
+void        kthread_destroy(kthread_t thread);
+void        kthread_suspend(kthread_t thread);
+void        kthread_resume(kthread_t thread);
+void        kthread_setprio(kthread_t thread, int prio);
+int         kthread_getprio(kthread_t thread);
+uint32_t    kthread_time(kthread_t thread);
+void        kthread_sleep(uint32_t tick);
+void        kthread_exit(void);
+kthread_t   kthread_self(void);
 
 /******************************************************************************
 * mutex
 ******************************************************************************/
-kmutex_t  	kmutex_create(void);
-void   		kmutex_destroy(kmutex_t mutex);
-void   		kmutex_lock(kmutex_t mutex);
-void   		kmutex_unlock(kmutex_t mutex);
+kmutex_t    kmutex_create(void);
+void        kmutex_destroy(kmutex_t mutex);
+void        kmutex_lock(kmutex_t mutex);
+void        kmutex_unlock(kmutex_t mutex);
 
 /******************************************************************************
 * event
 ******************************************************************************/
-kevent_t 	kevent_create(int state);
-void   		kevent_destroy(kevent_t event);
-void   		kevent_post(kevent_t event);
-void   		kevent_wait(kevent_t event);
-int     	kevent_timedwait(kevent_t event, uint32_t timeout);
+kevent_t    kevent_create(int state);
+void        kevent_destroy(kevent_t event);
+void        kevent_post(kevent_t event);
+void        kevent_wait(kevent_t event);
+int         kevent_timedwait(kevent_t event, uint32_t timeout);
 
 /******************************************************************************
 * semaphore
 ******************************************************************************/
-ksem_t 		ksem_create(uint32_t value);
-void   		ksem_destroy(ksem_t sem);
-void 		ksem_post(ksem_t sem);
-void   		ksem_wait(ksem_t sem);
-int   		ksem_timedwait(ksem_t sem, uint32_t timeout);
-uint32_t	ksem_getvalue(ksem_t sem);
+ksem_t      ksem_create(uint32_t value);
+void        ksem_destroy(ksem_t sem);
+void        ksem_post(ksem_t sem);
+void        ksem_wait(ksem_t sem);
+int         ksem_timedwait(ksem_t sem, uint32_t timeout);
+uint32_t    ksem_getvalue(ksem_t sem);
 
 /******************************************************************************
 * alias
 ******************************************************************************/
-#define		clock		kernel_time
-#define		sleep		kthread_sleep
-#define 	malloc		kmem_alloc
-#define		free		kmem_free
+#define     clock       kernel_time
+#define     sleep       kthread_sleep
+#define     malloc      kmem_alloc
+#define     free        kmem_free
 
 #endif

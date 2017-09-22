@@ -29,105 +29,105 @@
 
 void list_init(void* list)
 {
-	((struct list*)list)->head = NULL;
-	((struct list*)list)->tail = NULL;
+    ((struct list*)list)->head = NULL;
+    ((struct list*)list)->tail = NULL;
 }
 
 void list_append(void* list, void* node)
 {
-	((struct node*)node)->next = NULL;
-	((struct node*)node)->prev = ((struct list*)list)->tail;
-	if(((struct list*)list)->head == NULL)
-	{
-		((struct list*)list)->head = node;
-		((struct list*)list)->tail = node;
-	}
-	else
-	{
-		((struct list*)list)->tail->next = node;
-		((struct list*)list)->tail = node;
-	}
+    ((struct node*)node)->next = NULL;
+    ((struct node*)node)->prev = ((struct list*)list)->tail;
+    if(((struct list*)list)->head == NULL)
+    {
+        ((struct list*)list)->head = node;
+        ((struct list*)list)->tail = node;
+    }
+    else
+    {
+        ((struct list*)list)->tail->next = node;
+        ((struct list*)list)->tail = node;
+    }
 }
 
 void list_insert(void* list, void* node)
 {
-	((struct node*)node)->prev = NULL;
-	((struct node*)node)->next = ((struct list*)list)->head;
-	if(((struct list*)list)->head == NULL)
-	{
-		((struct list*)list)->head = node;
-		((struct list*)list)->tail = node;
-	}
-	else
-	{
-		((struct list*)list)->head->prev = node;
-		((struct list*)list)->head = node;
-	}
+    ((struct node*)node)->prev = NULL;
+    ((struct node*)node)->next = ((struct list*)list)->head;
+    if(((struct list*)list)->head == NULL)
+    {
+        ((struct list*)list)->head = node;
+        ((struct list*)list)->tail = node;
+    }
+    else
+    {
+        ((struct list*)list)->head->prev = node;
+        ((struct list*)list)->head = node;
+    }
 }
 
 void list_remove(void* list, void* node)
 {
-	if(((struct node*)node)->prev == NULL)
-	{
-		((struct list*)list)->head = ((struct node*)node)->next;
-	}
-	else
-	{
-		((struct node*)node)->prev->next = ((struct node*)node)->next;
-	}
-	if(((struct node*)node)->next == NULL)
-	{
-		((struct list*)list)->tail = ((struct node*)node)->prev;
-	}
-	else
-	{
-		((struct node*)node)->next->prev = ((struct node*)node)->prev;
-	}
+    if(((struct node*)node)->prev == NULL)
+    {
+        ((struct list*)list)->head = ((struct node*)node)->next;
+    }
+    else
+    {
+        ((struct node*)node)->prev->next = ((struct node*)node)->next;
+    }
+    if(((struct node*)node)->next == NULL)
+    {
+        ((struct list*)list)->tail = ((struct node*)node)->prev;
+    }
+    else
+    {
+        ((struct node*)node)->next->prev = ((struct node*)node)->prev;
+    }
 }
 
 void list_insert_before(void* list, void* before, void* node)
 {
-	((struct node*)node)->next = before;
-	if(before == NULL)
-	{
-		((struct node*)node)->prev = ((struct list*)list)->tail;
-		((struct list*)list)->tail = node;
-	}
-	else
-	{
-		((struct node*)node)->prev = ((struct node*)before)->prev;
-		((struct node*)before)->prev = node;
-	}
-	if(((struct node*)node)->prev == NULL)
-	{
-		((struct list*)list)->head = node;
-	}
-	else
-	{
-		((struct node*)node)->prev->next = node;
-	}
+    ((struct node*)node)->next = before;
+    if(before == NULL)
+    {
+        ((struct node*)node)->prev = ((struct list*)list)->tail;
+        ((struct list*)list)->tail = node;
+    }
+    else
+    {
+        ((struct node*)node)->prev = ((struct node*)before)->prev;
+        ((struct node*)before)->prev = node;
+    }
+    if(((struct node*)node)->prev == NULL)
+    {
+        ((struct list*)list)->head = node;
+    }
+    else
+    {
+        ((struct node*)node)->prev->next = node;
+    }
 }
 
 void list_insert_after(void* list, void* after, void* node)
 {
-	((struct node*)node)->prev = after;
-	if(after == NULL)
-	{
-		((struct node*)node)->next = ((struct list*)list)->head;
-		((struct list*)list)->head = node;
-	}
-	else
-	{
-		((struct node*)node)->next = ((struct node*)after)->next;
-		((struct node*)after)->next = node;
-	}
-	if(((struct node*)node)->next == NULL)
-	{
-		((struct list*)list)->tail = node;
-	}
-	else
-	{
-		((struct node*)node)->next->prev = node;
-	}
+    ((struct node*)node)->prev = after;
+    if(after == NULL)
+    {
+        ((struct node*)node)->next = ((struct list*)list)->head;
+        ((struct list*)list)->head = node;
+    }
+    else
+    {
+        ((struct node*)node)->next = ((struct node*)after)->next;
+        ((struct node*)after)->next = node;
+    }
+    if(((struct node*)node)->next == NULL)
+    {
+        ((struct list*)list)->tail = node;
+    }
+    else
+    {
+        ((struct node*)node)->next->prev = node;
+    }
 }
 

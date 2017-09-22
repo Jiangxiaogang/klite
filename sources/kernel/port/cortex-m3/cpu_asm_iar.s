@@ -24,43 +24,43 @@
 ;* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;* SOFTWARE.
 ;******************************************************************************/
-TCB_OFFSET_SP		EQU 0x00
-TCB_OFFSET_STATE 	EQU 0x20
+TCB_OFFSET_SP       EQU 0x00
+TCB_OFFSET_STATE    EQU 0x20
 
-	EXTERN  sched_tcb_now
-	EXTERN  sched_tcb_new
-	
-	PUBLIC  cpu_irq_enable
-	PUBLIC  cpu_irq_disable
-	PUBLIC  PendSV_Handler
-	
-	SECTION .text:CODE:NOROOT(4)
-	
+    EXTERN  sched_tcb_now
+    EXTERN  sched_tcb_new
+    
+    PUBLIC  cpu_irq_enable
+    PUBLIC  cpu_irq_disable
+    PUBLIC  PendSV_Handler
+    
+    SECTION .text:CODE:NOROOT(4)
+    
 cpu_irq_enable:
-	CPSIE	I
-	BX		LR
-	
+    CPSIE   I
+    BX      LR
+    
 cpu_irq_disable:
-	CPSID	I
-	BX		LR
-	
+    CPSID   I
+    BX      LR
+    
 PendSV_Handler:
-	CPSID   I
-	LDR     R0, =sched_tcb_now
-	LDR     R1, [R0]
-	CBZ     R1, POPSTACK
-	PUSH    {R4-R11}
-	STR     SP, [R1,#TCB_OFFSET_SP]
+    CPSID   I
+    LDR     R0, =sched_tcb_now
+    LDR     R1, [R0]
+    CBZ     R1, POPSTACK
+    PUSH    {R4-R11}
+    STR     SP, [R1,#TCB_OFFSET_SP]
 POPSTACK
-	LDR     R2, =sched_tcb_new
-	LDR     R3, [R2]
-	STR     R3, [R0]
-	MOV	R1, #0
-	STR	R1, [R3,#TCB_OFFSET_STATE]
-	LDR     SP, [R3,#TCB_OFFSET_SP]
-	POP     {R4-R11}
-	CPSIE   I
-	BX      LR
-	
-	END
-	
+    LDR     R2, =sched_tcb_new
+    LDR     R3, [R2]
+    STR     R3, [R0]
+    MOV R1, #0
+    STR R1, [R3,#TCB_OFFSET_STATE]
+    LDR     SP, [R3,#TCB_OFFSET_SP]
+    POP     {R4-R11}
+    CPSIE   I
+    BX      LR
+    
+    END
+    

@@ -29,50 +29,50 @@
 
 kmutex_t kmutex_create(void)
 {
-	struct object* obj;
-	obj = kmem_alloc(sizeof(struct object));
-	if(obj != NULL)
-	{
-		kobject_init(obj);
-	}
-	return (kmutex_t)obj;
+    struct object* obj;
+    obj = kmem_alloc(sizeof(struct object));
+    if(obj != NULL)
+    {
+        kobject_init(obj);
+    }
+    return (kmutex_t)obj;
 }
 
 void kmutex_destroy(kmutex_t mutex)
 {
-	kmem_free(mutex);
+    kmem_free(mutex);
 }
 
 void kmutex_lock(kmutex_t mutex)
 {
-	struct object* obj;
-	obj = (struct object*)mutex;
+    struct object* obj;
+    obj = (struct object*)mutex;
 
-	ksched_lock();
-	if(obj->data == 0)
-	{
-		obj->data = 1;
-		ksched_unlock();
-		return;
-	}
-	kobject_wait(obj, sched_tcb_now);
-	ksched_unlock();
-	ksched_execute();
+    ksched_lock();
+    if(obj->data == 0)
+    {
+        obj->data = 1;
+        ksched_unlock();
+        return;
+    }
+    kobject_wait(obj, sched_tcb_now);
+    ksched_unlock();
+    ksched_execute();
 }
 
 void kmutex_unlock(kmutex_t mutex)
 {
-	struct object* obj;
-	obj = (struct object*)mutex;
-	
-	ksched_lock();
-	if(obj->head == NULL)
-	{
-		obj->data = 0;
-		ksched_unlock();
-		return;
-	}
-	kobject_post(obj, obj->head->tcb);
-	ksched_unlock();
+    struct object* obj;
+    obj = (struct object*)mutex;
+    
+    ksched_lock();
+    if(obj->head == NULL)
+    {
+        obj->data = 0;
+        ksched_unlock();
+        return;
+    }
+    kobject_post(obj, obj->head->tcb);
+    ksched_unlock();
 }
 
