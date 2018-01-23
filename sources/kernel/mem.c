@@ -138,7 +138,7 @@ void kmem_free(void* mem)
     kmem_unlock();
 }
 
-void kmem_info(uint32_t* total, uint32_t* used)
+void kmem_usage(uint32_t* total, uint32_t* used)
 {
     struct mnode* node;
     

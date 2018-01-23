@@ -49,7 +49,7 @@ uint32_t    kernel_version(void);
 ******************************************************************************/
 void*       kmem_alloc(uint32_t size);
 void        kmem_free(void* mem);
-void        kmem_info(uint32_t* total, uint32_t* used);
+void        kmem_usage(uint32_t* total, uint32_t* used);
 
 /******************************************************************************
 * thread
