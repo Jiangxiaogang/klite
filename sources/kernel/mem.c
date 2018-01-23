@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -31,15 +31,15 @@
 #define MEM_ALIGN_PAD(m)    (((m)+MEM_ALIGN_MASK) & (~MEM_ALIGN_MASK))
 #define MEM_ALIGN_CUT(m)    ((m) & (~MEM_ALIGN_MASK))
 
-struct mnode
+struct mem_node
 {
     uint32_t used;
-    struct mnode* next;
+    struct mem_node *next;
 };
 
-static uint32_t      kmem_size;
-static struct mnode* kmem_head;
-static struct object kmem_mutex;
+static uint32_t         kmem_size;
+static struct mem_node *kmem_head;
+static struct object    kmem_mutex;
 
 void kmem_init(uint32_t addr, uint32_t size)
 {
@@ -50,10 +50,10 @@ void kmem_init(uint32_t addr, uint32_t size)
     end      = MEM_ALIGN_CUT(start+size);
     kmem_size= end - start;
     
-    kmem_head = (struct mnode*)start;
-    kmem_head->used = sizeof(struct mnode);
-    kmem_head->next = (struct mnode*)(end - sizeof(struct mnode));
-    kmem_head->next->used = sizeof(struct mnode);
+    kmem_head = (struct mem_node *)start;
+    kmem_head->used = sizeof(struct mem_node);
+    kmem_head->next = (struct mem_node *)(end - sizeof(struct mem_node));
+    kmem_head->next->used = sizeof(struct mem_node);
     kmem_head->next->next = NULL;
     
     kobject_init(&kmem_mutex);
@@ -86,17 +86,17 @@ static void kmem_unlock(void)
     ksched_unlock();
 }
 
-void* kmem_alloc(uint32_t size)
+void *kmem_alloc(uint32_t size)
 {
-    void* mem;
+    void *mem;
     uint32_t free;
     uint32_t need;
-    struct mnode* tmp;
-    struct mnode* node;
+    struct mem_node *tmp;
+    struct mem_node *node;
     
     mem  = NULL;
     size = MEM_ALIGN_PAD(size);
-    need = size + sizeof(struct mnode);
+    need = size + sizeof(struct mem_node);
 
     kmem_lock();
     for(node=kmem_head; node->next!=NULL; node=node->next)
@@ -104,11 +104,11 @@ void* kmem_alloc(uint32_t size)
         free = ((uint32_t)node->next) - ((uint32_t)node) - node->used;
         if(free >= need)
         {
-            tmp = (struct mnode*)((uint32_t)node + node->used);
+            tmp = (struct mem_node *)((uint32_t)node + node->used);
             tmp->next = node->next;
             tmp->used = need;
             node->next = tmp;
-            mem = (void*)((uint32_t)(tmp+1));
+            mem = (void *)((uint32_t)(tmp+1));
             break;
         }
     }
@@ -116,14 +116,14 @@ void* kmem_alloc(uint32_t size)
     return mem;
 }
 
-void kmem_free(void* mem)
+void kmem_free(void *mem)
 {
-    struct mnode* node;
-    struct mnode* prev;
-    struct mnode* find;
+    struct mem_node *node;
+    struct mem_node *prev;
+    struct mem_node *find;
     
     prev = kmem_head;
-    find = ((struct mnode*)mem)-1;
+    find = ((struct mem_node*)mem)-1;
 
     kmem_lock();
     for(node=kmem_head->next; node->next!=NULL; node=node->next)
@@ -138,9 +138,9 @@ void kmem_free(void* mem)
     kmem_unlock();
 }
 
-void kmem_usage(uint32_t* total, uint32_t* used)
+void kmem_usage(uint32_t *total, uint32_t *used)
 {
-    struct mnode* node;
+    struct mem_node *node;
     
     *used  = 0;
     *total = kmem_size;

@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -27,13 +27,13 @@
 #include "kernel.h"
 #include "internal.h"
 
-#define NVIC_INT_CTRL (*((volatile uint32_t*)0xE000ED04))
+#define NVIC_INT_CTRL (*((volatile uint32_t *)0xE000ED04))
 #define PEND_INT_SET  (1<<28)
 
-void cpu_tcb_init(struct tcb* tcb)
+void cpu_tcb_init(struct tcb *tcb)
 {
     uint32_t *sp;
-    sp = (uint32_t*)(tcb->sp_max & 0xFFFFFFF8);
+    sp = (uint32_t *)(tcb->sp_max & 0xFFFFFFF8);
     
     *(--sp) = 0x01000000;               // xPSR
     *(--sp) = (uint32_t)tcb->func;      // PC

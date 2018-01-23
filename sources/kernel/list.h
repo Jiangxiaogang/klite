@@ -29,22 +29,22 @@
 
 struct node
 {
-    struct node* prev;
-    struct node* next;
+    struct node *prev;
+    struct node *next;
 };
 
 struct list
 {
-    struct node* head;
-    struct node* tail;
+    struct node *head;
+    struct node *tail;
 };
 
-void list_init(void* list);
-void list_append(void* list, void* node);
-void list_remove(void* list, void* node);
-void list_insert(void* list, void* node);
-void list_insert_after(void* list, void* after, void* node);
-void list_insert_before(void* list, void* before, void* node);
+void list_init(void *list);
+void list_append(void *list, void *node);
+void list_remove(void *list, void *node);
+void list_insert(void *list, void *node);
+void list_insert_after(void *list, void *after, void *node);
+void list_insert_before(void *list, void *before, void *node);
 
 #endif
 

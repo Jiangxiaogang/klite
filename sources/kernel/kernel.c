@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -28,12 +28,12 @@
 #include "internal.h"
 #include "port.h"
 
-#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(2,2,6)
+#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(2,2,7)
 
 static uint32_t  tick_count;
 static kthread_t idle_thread;
 
-static void kernel_idle(void* arg)
+static void kernel_idle(void *arg)
 {
     for(;;)
     {

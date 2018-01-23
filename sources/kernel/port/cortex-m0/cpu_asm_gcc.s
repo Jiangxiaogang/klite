@@ -1,5 +1,5 @@
 ;/******************************************************************************
-;* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+;* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 ;*
 ;* This file is part of KLite distribution.
 ;*
@@ -60,7 +60,7 @@ PendSV_Handler:
     CPSID   I
     LDR     R0, =sched_tcb_now
     LDR     R1, [R0]
-    CMP R1, #0
+    CMP     R1, #0
     BEQ     POPSTACK
     PUSH    {R4-R7}
     MOV     R4, R8
@@ -68,7 +68,7 @@ PendSV_Handler:
     MOV     R6, R10
     MOV     R7, R11
     PUSH    {R4-R7}
-    MOV R2,SP
+    MOV     R2,SP
     STR     R2, [R1,#TCB_OFFSET_SP]
 
 POPSTACK:
@@ -76,7 +76,7 @@ POPSTACK:
     LDR     R3, [R2]
     STR     R3, [R0]
     MOVS    R1, #0
-    STR R1, [R3,#TCB_OFFSET_STATE]
+    STR     R1, [R3,#TCB_OFFSET_STATE]
     LDR     R0, [R3,#TCB_OFFSET_SP]
     MOV     SP, R0
     POP     {R4-R7}
@@ -84,7 +84,7 @@ POPSTACK:
     MOV     R9, R5
     MOV     R10,R6
     MOV     R11,R7
-    POP {R4-R7}
+    POP     {R4-R7}
     CPSIE   I
     BX      LR
     .fnend

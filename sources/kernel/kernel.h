@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -47,14 +47,14 @@ uint32_t    kernel_version(void);
 /******************************************************************************
 * memory
 ******************************************************************************/
-void*       kmem_alloc(uint32_t size);
-void        kmem_free(void* mem);
-void        kmem_usage(uint32_t* total, uint32_t* used);
+void       *kmem_alloc(uint32_t size);
+void        kmem_free(void *mem);
+void        kmem_usage(uint32_t *total, uint32_t *used);
 
 /******************************************************************************
 * thread
 ******************************************************************************/
-kthread_t   kthread_create(void(*func)(void*), void* arg, uint32_t stk_size);
+kthread_t   kthread_create(void(*func)(void*), void *arg, uint32_t stk_size);
 void        kthread_destroy(kthread_t thread);
 void        kthread_suspend(kthread_t thread);
 void        kthread_resume(kthread_t thread);

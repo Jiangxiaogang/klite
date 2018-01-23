@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -29,7 +29,7 @@
 
 ksem_t ksem_create(uint32_t value)
 {
-    struct object* obj;
+    struct object *obj;
     obj = kmem_alloc(sizeof(struct object));
     if(obj != NULL)
     {
@@ -46,8 +46,8 @@ void ksem_destroy(ksem_t sem)
 
 void ksem_wait(ksem_t sem)
 {
-    struct object* obj;
-    obj = (struct object*)sem;
+    struct object *obj;
+    obj = (struct object *)sem;
     
     ksched_lock();
     if(obj->data != 0)
@@ -63,8 +63,8 @@ void ksem_wait(ksem_t sem)
 
 int ksem_timedwait(ksem_t sem, uint32_t timeout)
 {
-    struct object* obj;
-    obj = (struct object*)sem;
+    struct object *obj;
+    obj = (struct object *)sem;
     
     ksched_lock();
     if(obj->data != 0)
@@ -86,8 +86,8 @@ int ksem_timedwait(ksem_t sem, uint32_t timeout)
 
 void ksem_post(ksem_t sem)
 {
-    struct object* obj;
-    obj = (struct object*)sem;
+    struct object *obj;
+    obj = (struct object *)sem;
     
     ksched_lock();
     if(obj->head == NULL)
@@ -102,8 +102,8 @@ void ksem_post(ksem_t sem)
 
 uint32_t ksem_getvalue(ksem_t sem)
 {
-    struct object* obj;
-    obj = (struct object*)sem;
+    struct object *obj;
+    obj = (struct object *)sem;
     return obj->data;
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -28,21 +28,21 @@
 #include "internal.h"
 #include "list.h"
 
-void kobject_init(struct object* obj)
+void kobject_init(struct object *obj)
 {
     obj->head = NULL;
     obj->tail = NULL;
     obj->data = 0;
 }
 
-void kobject_wait(struct object* obj, struct tcb* tcb)
+void kobject_wait(struct object *obj, struct tcb *tcb)
 {
     tcb->state = TCB_STATE_WAIT;
-    tcb->lwait = (struct tcb_list*)obj;
-    ksched_insert((struct tcb_list*)obj, tcb->nwait);
+    tcb->lwait = (struct tcb_list *)obj;
+    ksched_insert((struct tcb_list *)obj, tcb->nwait);
 }
 
-void kobject_post(struct object* obj, struct tcb* tcb)
+void kobject_post(struct object *obj, struct tcb *tcb)
 {
     if(tcb->lsched)
     {
@@ -55,12 +55,12 @@ void kobject_post(struct object* obj, struct tcb* tcb)
     ksched_insert(&sched_list_ready, tcb->nsched);
 }
 
-void kobject_timedwait(struct object* obj, struct tcb* tcb, uint32_t timeout)
+void kobject_timedwait(struct object *obj, struct tcb *tcb, uint32_t timeout)
 {
     tcb->timeout = timeout;
     tcb->state   = TCB_STATE_TIMEDWAIT;
-    tcb->lwait   = (struct tcb_list*)obj;
+    tcb->lwait   = (struct tcb_list *)obj;
     tcb->lsched  = &sched_list_sleep;
     list_append(&sched_list_sleep, tcb->nsched);
-    ksched_insert((struct tcb_list*)obj, tcb->nwait);
+    ksched_insert((struct tcb_list *)obj, tcb->nwait);
 }

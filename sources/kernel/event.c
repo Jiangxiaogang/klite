@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -29,7 +29,7 @@
 
 kevent_t kevent_create(int state)
 {
-    struct object* obj;
+    struct object *obj;
     obj = kmem_alloc(sizeof(struct object));
     if(obj != NULL)
     {
@@ -46,7 +46,7 @@ void kevent_destroy(kevent_t event)
 
 void kevent_wait(kevent_t event)
 {
-    struct object* obj;
+    struct object *obj;
     obj = (struct object*)event;
     
     ksched_lock();
@@ -63,7 +63,7 @@ void kevent_wait(kevent_t event)
 
 int kevent_timedwait(kevent_t event, uint32_t timeout)
 {
-    struct object* obj;
+    struct object *obj;
     obj = (struct object*)event;
     
     ksched_lock();
@@ -86,7 +86,7 @@ int kevent_timedwait(kevent_t event, uint32_t timeout)
 
 void kevent_post(kevent_t event)
 {
-    struct object* obj;
+    struct object *obj;
     obj = (struct object*)event;
     
     ksched_lock();

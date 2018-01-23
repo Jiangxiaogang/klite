@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -29,13 +29,13 @@
 #include "list.h"
 #include "port.h"
 
-struct tcb*      sched_tcb_now;
-struct tcb*      sched_tcb_new;
+struct tcb      *sched_tcb_now;
+struct tcb      *sched_tcb_new;
 struct tcb_list  sched_list_sleep;
 struct tcb_list  sched_list_ready;
 static uint32_t  sched_locked;
 
-static void ksched_switch(struct tcb* tcb)
+static void ksched_switch(struct tcb *tcb)
 {
     tcb->state = TCB_STATE_SWITCH;
     sched_tcb_new = tcb;
@@ -44,9 +44,9 @@ static void ksched_switch(struct tcb* tcb)
 
 static void ksched_timer(void)
 {
-    struct tcb* tcb;
-    struct tcb_node* node;
-    struct tcb_node* next;
+    struct tcb *tcb;
+    struct tcb_node *node;
+    struct tcb_node *next;
     
     for(node=sched_list_sleep.head; node!=NULL; node=next)
     {
@@ -70,7 +70,7 @@ static void ksched_timer(void)
 
 static void ksched_preempt(void)
 {
-    struct tcb_node* node;
+    struct tcb_node *node;
     if(sched_tcb_now->state != TCB_STATE_RUNNING)
     {
         return;
@@ -105,9 +105,9 @@ void ksched_timetick(void)
     }
 }
 
-void ksched_insert(struct tcb_list* list, struct tcb_node* node)
+void ksched_insert(struct tcb_list *list, struct tcb_node *node)
 {
-    struct tcb_node* find;
+    struct tcb_node *find;
     for(find=list->tail; find!=NULL; find=find->prev)
     {
         if(find->tcb->prio >= node->tcb->prio)
@@ -120,7 +120,7 @@ void ksched_insert(struct tcb_list* list, struct tcb_node* node)
 
 void ksched_execute(void)
 {
-    struct tcb_node* node;
+    struct tcb_node *node;
     cpu_irq_disable();
     node = sched_list_ready.head;
     node->tcb->lsched = NULL;

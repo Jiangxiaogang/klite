@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -32,7 +32,7 @@ void cpu_os_start(void);
 void cpu_os_idle(void);
 void cpu_irq_enable(void);
 void cpu_irq_disable(void);
-void cpu_tcb_init(struct tcb* tcb);
+void cpu_tcb_init(struct tcb *tcb);
 void cpu_tcb_switch(void);
 
 #endif

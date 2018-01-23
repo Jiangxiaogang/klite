@@ -1,5 +1,5 @@
 ;/******************************************************************************
-;* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+;* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 ;*
 ;* This file is part of KLite distribution.
 ;*
@@ -43,29 +43,29 @@
 cpu_irq_enable:
     .fnstart
     .cantunwind
-    CPSIE       I
+    CPSIE   I
     BX      LR
     .fnend
     
 cpu_irq_disable:
     .fnstart
     .cantunwind
-    CPSID       I
+    CPSID   I
     BX      LR
     .fnend
 
 PendSV_Handler:
     .fnstart
     .cantunwind
-    CPSID       I
+    CPSID   I
     LDR     R0, =sched_tcb_now
     LDR     R1, [R0]
     CBZ     R1, POPSTACK
     TST     LR, #0x10
     IT      EQ
-    VPUSHEQ     {S16-S31}
-    PUSH        {LR}
-    PUSH        {R4-R11}
+    VPUSHEQ {S16-S31}
+    PUSH    {LR}
+    PUSH    {R4-R11}
     STR     SP, [R1,#TCB_OFFSET_SP]
 
 POPSTACK:

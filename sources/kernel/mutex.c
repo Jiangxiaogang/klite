@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2017 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -29,7 +29,7 @@
 
 kmutex_t kmutex_create(void)
 {
-    struct object* obj;
+    struct object *obj;
     obj = kmem_alloc(sizeof(struct object));
     if(obj != NULL)
     {
@@ -45,8 +45,8 @@ void kmutex_destroy(kmutex_t mutex)
 
 void kmutex_lock(kmutex_t mutex)
 {
-    struct object* obj;
-    obj = (struct object*)mutex;
+    struct object *obj;
+    obj = (struct object *)mutex;
 
     ksched_lock();
     if(obj->data == 0)
@@ -62,8 +62,8 @@ void kmutex_lock(kmutex_t mutex)
 
 void kmutex_unlock(kmutex_t mutex)
 {
-    struct object* obj;
-    obj = (struct object*)mutex;
+    struct object *obj;
+    obj = (struct object *)mutex;
     
     ksched_lock();
     if(obj->head == NULL)
