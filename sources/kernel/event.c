@@ -47,7 +47,7 @@ void kevent_destroy(kevent_t event)
 void kevent_wait(kevent_t event)
 {
     struct object *obj;
-    obj = (struct object*)event;
+    obj = (struct object *)event;
     
     ksched_lock();
     if(obj->data != 0)
@@ -64,7 +64,7 @@ void kevent_wait(kevent_t event)
 int kevent_timedwait(kevent_t event, uint32_t timeout)
 {
     struct object *obj;
-    obj = (struct object*)event;
+    obj = (struct object *)event;
     
     ksched_lock();
     if(obj->data != 0)
@@ -87,7 +87,7 @@ int kevent_timedwait(kevent_t event, uint32_t timeout)
 void kevent_post(kevent_t event)
 {
     struct object *obj;
-    obj = (struct object*)event;
+    obj = (struct object *)event;
     
     ksched_lock();
     if(obj->head == NULL)
