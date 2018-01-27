@@ -34,6 +34,7 @@ kmutex_t kmutex_create(void)
     if(obj != NULL)
     {
         kobject_init(obj);
+        obj->data = 0;
     }
     return (kmutex_t)obj;
 }

@@ -30,9 +30,7 @@
 
 void kobject_init(struct object *obj)
 {
-    obj->head = NULL;
-    obj->tail = NULL;
-    obj->data = 0;
+    list_init(obj);
 }
 
 void kobject_wait(struct object *obj, struct tcb *tcb)

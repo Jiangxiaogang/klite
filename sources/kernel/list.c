@@ -33,38 +33,6 @@ void list_init(void *list)
     ((struct list *)list)->tail = NULL;
 }
 
-void list_append(void *list, void *node)
-{
-    ((struct node *)node)->next = NULL;
-    ((struct node *)node)->prev = ((struct list *)list)->tail;
-    if(((struct list *)list)->head == NULL)
-    {
-        ((struct list *)list)->head = node;
-        ((struct list *)list)->tail = node;
-    }
-    else
-    {
-        ((struct list *)list)->tail->next = node;
-        ((struct list *)list)->tail = node;
-    }
-}
-
-void list_insert(void *list, void *node)
-{
-    ((struct node *)node)->prev = NULL;
-    ((struct node *)node)->next = ((struct list *)list)->head;
-    if(((struct list *)list)->head == NULL)
-    {
-        ((struct list *)list)->head = node;
-        ((struct list *)list)->tail = node;
-    }
-    else
-    {
-        ((struct list *)list)->head->prev = node;
-        ((struct list *)list)->head = node;
-    }
-}
-
 void list_remove(void *list, void *node)
 {
     if(((struct node *)node)->prev == NULL)

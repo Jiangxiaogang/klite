@@ -57,6 +57,7 @@ void kmem_init(uint32_t addr, uint32_t size)
     kmem_head->next->next = NULL;
     
     kobject_init(&kmem_mutex);
+    kmem_mutex.data = 0;
 }
 
 static void kmem_lock(void)

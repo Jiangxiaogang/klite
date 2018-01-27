@@ -40,11 +40,12 @@ struct list
 };
 
 void list_init(void *list);
-void list_append(void *list, void *node);
 void list_remove(void *list, void *node);
-void list_insert(void *list, void *node);
 void list_insert_after(void *list, void *after, void *node);
 void list_insert_before(void *list, void *before, void *node);
+
+#define list_prepend(list, node) list_insert_after(list, NULL, node)
+#define list_append(list, node)  list_insert_before(list, NULL, node)
 
 #endif
 
