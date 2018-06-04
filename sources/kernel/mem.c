@@ -25,11 +25,19 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "internal.h"
+#include "sched.h"
 
-#define MEM_ALIGN_MASK      (MEMORY_ALIGN_BYTE-1)
+#define MEM_ALIGN_BYTE       (4)
+#define MEM_ALIGN_MASK      (MEM_ALIGN_BYTE-1)
 #define MEM_ALIGN_PAD(m)    (((m)+MEM_ALIGN_MASK) & (~MEM_ALIGN_MASK))
 #define MEM_ALIGN_CUT(m)    ((m) & (~MEM_ALIGN_MASK))
+
+struct mem_lock
+{
+    struct tcb_node *head;
+    struct tcb_node *tail;
+    int data;
+};
 
 struct mem_node
 {
@@ -37,9 +45,9 @@ struct mem_node
     struct mem_node *next;
 };
 
-static uint32_t         kmem_size;
-static struct mem_node *kmem_head;
-static struct object    kmem_mutex;
+static uint32_t         m_mem_size;
+static struct mem_node *m_mem_head;
+static struct mem_lock  m_mem_lock;
 
 void kmem_init(uint32_t addr, uint32_t size)
 {
@@ -48,43 +56,44 @@ void kmem_init(uint32_t addr, uint32_t size)
     
     start    = MEM_ALIGN_PAD(addr);
     end      = MEM_ALIGN_CUT(start+size);
-    kmem_size= end - start;
+    m_mem_size= end - start;
     
-    kmem_head = (struct mem_node *)start;
-    kmem_head->used = sizeof(struct mem_node);
-    kmem_head->next = (struct mem_node *)(end - sizeof(struct mem_node));
-    kmem_head->next->used = sizeof(struct mem_node);
-    kmem_head->next->next = NULL;
+    m_mem_head = (struct mem_node *)start;
+    m_mem_head->used = sizeof(struct mem_node);
+    m_mem_head->next = (struct mem_node *)(end - sizeof(struct mem_node));
+    m_mem_head->next->used = sizeof(struct mem_node);
+    m_mem_head->next->next = NULL;
     
-    kobject_init(&kmem_mutex);
-    kmem_mutex.data = 0;
+    m_mem_lock.head = NULL;
+    m_mem_lock.tail = NULL;
+    m_mem_lock.data = 0;
 }
 
 static void kmem_lock(void)
 {
-    ksched_lock();
-    if(kmem_mutex.data == 0)
+    sched_lock();
+    if(m_mem_lock.data == 0)
     {
-        kmem_mutex.data = 1;
-        ksched_unlock();
+        m_mem_lock.data = 1;
+        sched_unlock();
         return;
     }
-    kobject_wait(&kmem_mutex, sched_tcb_now);
-    ksched_unlock();
-    ksched_execute();
+    sched_tcb_wait(sched_tcb_now, &m_mem_lock);
+    sched_unlock();
+    sched_switch();
 }
 
 static void kmem_unlock(void)
 {
-    ksched_lock();
-    if(kmem_mutex.head == NULL)
+    sched_lock();
+    if(m_mem_lock.head == NULL)
     {
-        kmem_mutex.data = 0;
-        ksched_unlock();
+        m_mem_lock.data = 0;
+        sched_unlock();
         return;
     }
-    kobject_post(&kmem_mutex, kmem_mutex.head->tcb);
-    ksched_unlock();
+    sched_tcb_ready(m_mem_lock.head->tcb);
+    sched_unlock();
 }
 
 void *kmem_alloc(uint32_t size)
@@ -100,7 +109,7 @@ void *kmem_alloc(uint32_t size)
     need = size + sizeof(struct mem_node);
 
     kmem_lock();
-    for(node=kmem_head; node->next!=NULL; node=node->next)
+    for(node=m_mem_head; node->next!=NULL; node=node->next)
     {
         free = ((uint32_t)node->next) - ((uint32_t)node) - node->used;
         if(free >= need)
@@ -123,11 +132,11 @@ void kmem_free(void *mem)
     struct mem_node *prev;
     struct mem_node *find;
     
-    prev = kmem_head;
-    find = ((struct mem_node*)mem)-1;
+    prev = m_mem_head;
+    find = ((struct mem_node *)mem) - 1;
 
     kmem_lock();
-    for(node=kmem_head->next; node->next!=NULL; node=node->next)
+    for(node=m_mem_head->next; node->next!=NULL; node=node->next)
     {
         if(node == find)
         {
@@ -144,10 +153,10 @@ void kmem_usage(uint32_t *total, uint32_t *used)
     struct mem_node *node;
     
     *used  = 0;
-    *total = kmem_size;
+    *total = m_mem_size;
     
     kmem_lock();
-    for(node=kmem_head; node!=NULL; node=node->next)
+    for(node=m_mem_head; node!=NULL; node=node->next)
     {
         *used += node->used;
     }

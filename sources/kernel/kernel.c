@@ -25,47 +25,43 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "internal.h"
+#include "sched.h"
 #include "port.h"
 
-#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(2,2,8)
+#define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))
+#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(2,3,0)
 
-static uint32_t  tick_count;
-static kthread_t idle_thread;
+static kthread_t m_idle_thread;
 
-static void kernel_idle(void *arg)
+extern void kmem_init(uint32_t addr, uint32_t size);
+
+static void idle_thread(void *arg)
 {
-    for(;;)
+    while(1)
     {
         cpu_os_idle();
     }
 }
 
+static void idle_init(void)
+{
+    m_idle_thread = kthread_create(idle_thread, 0, 0);
+    kthread_setprio(m_idle_thread, THREAD_PRIORITY_MIN - 1);
+}
+
 void kernel_init(uint32_t mem_addr, uint32_t mem_size)
 {
     cpu_os_init();
-    ksched_init();
+    sched_init();
     kmem_init(mem_addr, mem_size);
-    idle_thread = kthread_create(kernel_idle, 0, 0);
-    kthread_setprio(idle_thread, THREAD_PRIORITY_MIN);
+    idle_init();
 }
 
 void kernel_start(void)
 {
-    tick_count = 0;
     cpu_os_start();
-    ksched_execute();
+    sched_switch();
     cpu_os_idle();
-}
-
-uint32_t kernel_time(void)
-{
-    return tick_count;
-}
-
-uint32_t kernel_idletime(void)
-{
-    return kthread_time(idle_thread);
 }
 
 uint32_t kernel_version(void)
@@ -73,9 +69,12 @@ uint32_t kernel_version(void)
     return KERNEL_VERSION_CODE;
 }
 
-void kernel_timetick(void)
-{   
-    tick_count++;
-    ksched_timetick();
+uint32_t kernel_time(void)
+{
+    return sched_tick_count;
 }
 
+uint32_t kernel_idletime(void)
+{
+    return kthread_time(m_idle_thread);
+}

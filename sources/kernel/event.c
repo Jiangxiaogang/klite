@@ -25,81 +25,85 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "internal.h"
+#include "sched.h"
 
-kevent_t kevent_create(int state)
+struct event
 {
-    struct object *obj;
-    obj = kmem_alloc(sizeof(struct object));
+    struct tcb_node *head;
+    struct tcb_node *tail;
+    bool state;
+};
+
+kevent_t kevent_create(bool state)
+{
+    struct event *obj;
+    obj = kmem_alloc(sizeof(struct event));
     if(obj != NULL)
     {
-        kobject_init(obj);
-        obj->data = state;
+        obj->head = NULL;
+        obj->tail = NULL;
+        obj->state = state;
     }
     return (kevent_t)obj;
 }
 
-void kevent_destroy(kevent_t event)
+void kevent_delete(kevent_t event)
 {
     kmem_free(event);
 }
 
 void kevent_wait(kevent_t event)
 {
-    struct object *obj;
-    obj = (struct object *)event;
-    
-    ksched_lock();
-    if(obj->data != 0)
+    struct event *obj;
+    obj = (struct event *)event;
+    sched_lock();
+    if(obj->state != false)
     {
-        obj->data = 0;
-        ksched_unlock();
+        obj->state = false;
+        sched_unlock();
         return;
     }
-    kobject_wait(obj, sched_tcb_now);
-    ksched_unlock();
-    ksched_execute();
+    sched_tcb_wait(sched_tcb_now, obj);
+    sched_unlock();
+    sched_switch();
 }
 
-int kevent_timedwait(kevent_t event, uint32_t timeout)
+bool kevent_timedwait(kevent_t event, uint32_t timeout)
 {
-    struct object *obj;
-    obj = (struct object *)event;
-    
-    ksched_lock();
-    if(obj->data != 0)
+    struct event *obj;
+    obj = (struct event *)event;
+    sched_lock();
+    if(obj->state != false)
     {
-        obj->data = 0;
-        ksched_unlock();
-        return 1;
+        obj->state = false;
+        sched_unlock();
+        return true;
     }
     if(timeout == 0)
     {
-        ksched_unlock();
-        return 0;
+        sched_unlock();
+        return false;
     }
-    kobject_timedwait(obj, sched_tcb_now, timeout);
-    ksched_unlock();
-    ksched_execute();
+    sched_tcb_timedwait(sched_tcb_now, obj, timeout);
+    sched_unlock();
+    sched_switch();
     return (sched_tcb_now->timeout != 0);
 }
 
 void kevent_post(kevent_t event)
 {
-    struct object *obj;
-    obj = (struct object *)event;
-    
-    ksched_lock();
+    struct event *obj;
+    obj = (struct event *)event;
+    sched_lock();
     if(obj->head == NULL)
     {
-        obj->data = 1;
-        ksched_unlock();
+        obj->state = true;
+        sched_unlock();
         return;
     }
     while(obj->head)
     {
-        kobject_post(obj, obj->head->tcb);
+        sched_tcb_ready(obj->head->tcb);
     }
-    ksched_unlock();
+    sched_unlock();
 }
-

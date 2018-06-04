@@ -24,41 +24,62 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
-#include "kernel.h"
-#include "internal.h"
-#include "list.h"
+#ifndef __SCHED_H
+#define __SCHED_H
 
-void kobject_init(struct object *obj)
-{
-    list_init(obj);
-}
+#define TCB_STATE_RUNNING    0x00
+#define TCB_STATE_READY      0x01
+#define TCB_STATE_SLEEP      0x02
+#define TCB_STATE_WAIT       0x03
+#define TCB_STATE_TIMEDWAIT  0x04
+#define TCB_STATE_SWITCH     0x05
+#define TCB_STATE_SUSPEND    0x80
 
-void kobject_wait(struct object *obj, struct tcb *tcb)
+struct tcb
 {
-    tcb->state = TCB_STATE_WAIT;
-    tcb->lwait = (struct tcb_list *)obj;
-    ksched_insert((struct tcb_list *)obj, tcb->nwait);
-}
+    uint32_t         sp;
+    uint32_t         sp_min;
+    uint32_t         sp_max;
+    void           (*func)(void*);
+    void            *arg;
+    int              prio;
+    uint32_t         time;
+    uint32_t         timeout;
+    uint32_t         state;
+    struct tcb_node *nsched;
+    struct tcb_node *nwait;
+    struct tcb_list *lsched;
+    struct tcb_list *lwait;
+};
 
-void kobject_post(struct object *obj, struct tcb *tcb)
+struct tcb_node
 {
-    if(tcb->lsched)
-    {
-        list_remove(tcb->lsched, tcb->nsched);
-    }
-    tcb->state  = TCB_STATE_READY;
-    tcb->lwait  = NULL;
-    tcb->lsched = &sched_list_ready;
-    list_remove(obj, tcb->nwait);
-    ksched_insert(&sched_list_ready, tcb->nsched);
-}
+    struct tcb_node *prev;
+    struct tcb_node *next;
+    struct tcb      *tcb;
+};
 
-void kobject_timedwait(struct object *obj, struct tcb *tcb, uint32_t timeout)
+struct tcb_list
 {
-    tcb->timeout = timeout;
-    tcb->state   = TCB_STATE_TIMEDWAIT;
-    tcb->lwait   = (struct tcb_list *)obj;
-    tcb->lsched  = &sched_list_sleep;
-    list_append(&sched_list_sleep, tcb->nsched);
-    ksched_insert((struct tcb_list *)obj, tcb->nwait);
-}
+    struct tcb_node *head;
+    struct tcb_node *tail;
+};
+
+extern struct tcb *sched_tcb_now;
+extern struct tcb *sched_tcb_new;
+extern uint32_t    sched_tick_count;
+
+void sched_init(void);
+void sched_lock(void);
+void sched_unlock(void);
+void sched_switch(void);
+void sched_timetick(void);
+void sched_tcb_init(struct tcb *tcb);
+void sched_tcb_wait(struct tcb *tcb, void *wait);
+void sched_tcb_timedwait(struct tcb *tcb, void *wait, uint32_t timeout);
+void sched_tcb_sleep(struct tcb *tcb, uint32_t timeout);
+void sched_tcb_ready(struct tcb *tcb);
+void sched_tcb_suspend(struct tcb *tcb);
+void sched_tcb_resume(struct tcb *tcb);
+
+#endif

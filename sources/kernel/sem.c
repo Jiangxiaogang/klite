@@ -25,85 +25,89 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "internal.h"
+#include "sched.h"
+
+struct sem
+{
+    struct tcb_node *head;
+    struct tcb_node *tail;
+    uint32_t value;
+};
 
 ksem_t ksem_create(uint32_t value)
 {
-    struct object *obj;
-    obj = kmem_alloc(sizeof(struct object));
+    struct sem *obj;
+    obj = kmem_alloc(sizeof(struct sem));
     if(obj != NULL)
     {
-        kobject_init(obj);
-        obj->data = value;
+        obj->head = NULL;
+        obj->tail = NULL;
+        obj->value = value;
     }
     return (ksem_t)obj;
 }
 
-void ksem_destroy(ksem_t sem)
+void ksem_delete(ksem_t sem)
 {
     kmem_free(sem);
 }
 
 void ksem_wait(ksem_t sem)
 {
-    struct object *obj;
-    obj = (struct object *)sem;
-    
-    ksched_lock();
-    if(obj->data != 0)
+    struct sem *obj;
+    obj = (struct sem *)sem;
+    sched_lock();
+    if(obj->value != 0)
     {
-        obj->data--;
-        ksched_unlock();
+        obj->value--;
+        sched_unlock();
         return;
     }
-    kobject_wait(obj, sched_tcb_now);
-    ksched_unlock();
-    ksched_execute();
+    sched_tcb_wait(sched_tcb_now, obj);
+    sched_unlock();
+    sched_switch();
 }
 
-int ksem_timedwait(ksem_t sem, uint32_t timeout)
+bool ksem_timedwait(ksem_t sem, uint32_t timeout)
 {
-    struct object *obj;
-    obj = (struct object *)sem;
-    
-    ksched_lock();
-    if(obj->data != 0)
+    struct sem *obj;
+    obj = (struct sem *)sem;
+    sched_lock();
+    if(obj->value != 0)
     {
-        obj->data--;
-        ksched_unlock();
-        return 1;
+        obj->value--;
+        sched_unlock();
+        return true;
     }
     if(timeout == 0)
     {
-        ksched_unlock();
-        return 0;
+        sched_unlock();
+        return false;
     }
-    kobject_timedwait(obj, sched_tcb_now, timeout);
-    ksched_unlock();
-    ksched_execute();
+    sched_tcb_timedwait(sched_tcb_now, obj, timeout);
+    sched_unlock();
+    sched_switch();
     return (sched_tcb_now->timeout != 0);
 }
 
 void ksem_post(ksem_t sem)
 {
-    struct object *obj;
-    obj = (struct object *)sem;
-    
-    ksched_lock();
+    struct sem *obj;
+    obj = (struct sem *)sem;
+    sched_lock();
     if(obj->head == NULL)
     {
-        obj->data++;
-        ksched_unlock();
+        obj->value++;
+        sched_unlock();
         return;
     }
-    kobject_post(obj, obj->head->tcb);
-    ksched_unlock();
+    sched_tcb_ready(obj->head->tcb);
+    sched_unlock();
 }
 
 uint32_t ksem_getvalue(ksem_t sem)
 {
-    struct object *obj;
-    obj = (struct object *)sem;
-    return obj->data;
+    struct sem *obj;
+    obj = (struct sem *)sem;
+    return obj->value;
 }
-
