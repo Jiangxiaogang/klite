@@ -376,29 +376,14 @@
           <GroupName>kernel</GroupName>
           <Files>
             <File>
-              <FileName>kernel.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\kernel.c</FilePath>
-            </File>
-            <File>
-              <FileName>thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\thread.c</FilePath>
-            </File>
-            <File>
               <FileName>event.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\event.c</FilePath>
             </File>
             <File>
-              <FileName>sem.c</FileName>
+              <FileName>kernel.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\sem.c</FilePath>
-            </File>
-            <File>
-              <FileName>mutex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+              <FilePath>..\..\sources\kernel\kernel.c</FilePath>
             </File>
             <File>
               <FileName>mem.c</FileName>
@@ -406,19 +391,24 @@
               <FilePath>..\..\sources\kernel\mem.c</FilePath>
             </File>
             <File>
+              <FileName>mutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+            </File>
+            <File>
               <FileName>sched.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>object.c</FileName>
+              <FileName>sem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\object.c</FilePath>
+              <FilePath>..\..\sources\kernel\sem.c</FilePath>
             </File>
             <File>
-              <FileName>list.c</FileName>
+              <FileName>thread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\list.c</FilePath>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -967,29 +957,14 @@
           <GroupName>kernel</GroupName>
           <Files>
             <File>
-              <FileName>kernel.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\kernel.c</FilePath>
-            </File>
-            <File>
-              <FileName>thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\thread.c</FilePath>
-            </File>
-            <File>
               <FileName>event.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\event.c</FilePath>
             </File>
             <File>
-              <FileName>sem.c</FileName>
+              <FileName>kernel.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\sem.c</FilePath>
-            </File>
-            <File>
-              <FileName>mutex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+              <FilePath>..\..\sources\kernel\kernel.c</FilePath>
             </File>
             <File>
               <FileName>mem.c</FileName>
@@ -997,19 +972,24 @@
               <FilePath>..\..\sources\kernel\mem.c</FilePath>
             </File>
             <File>
+              <FileName>mutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+            </File>
+            <File>
               <FileName>sched.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>object.c</FileName>
+              <FileName>sem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\object.c</FilePath>
+              <FilePath>..\..\sources\kernel\sem.c</FilePath>
             </File>
             <File>
-              <FileName>list.c</FileName>
+              <FileName>thread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\list.c</FilePath>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1558,29 +1538,14 @@
           <GroupName>kernel</GroupName>
           <Files>
             <File>
-              <FileName>kernel.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\kernel.c</FilePath>
-            </File>
-            <File>
-              <FileName>thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\thread.c</FilePath>
-            </File>
-            <File>
               <FileName>event.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\event.c</FilePath>
             </File>
             <File>
-              <FileName>sem.c</FileName>
+              <FileName>kernel.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\sem.c</FilePath>
-            </File>
-            <File>
-              <FileName>mutex.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+              <FilePath>..\..\sources\kernel\kernel.c</FilePath>
             </File>
             <File>
               <FileName>mem.c</FileName>
@@ -1588,19 +1553,24 @@
               <FilePath>..\..\sources\kernel\mem.c</FilePath>
             </File>
             <File>
+              <FileName>mutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+            </File>
+            <File>
               <FileName>sched.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>object.c</FileName>
+              <FileName>sem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\object.c</FilePath>
+              <FilePath>..\..\sources\kernel\sem.c</FilePath>
             </File>
             <File>
-              <FileName>list.c</FileName>
+              <FileName>thread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\list.c</FilePath>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
             </File>
           </Files>
         </Group>

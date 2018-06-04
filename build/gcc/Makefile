@@ -2,8 +2,8 @@
 # jiangxiaogang<kerndev@foxmail.com>
 # 2017.6.14
 
-CC := d:/mingw/bin/arm-none-eabi-gcc.exe
-AR := d:/mingw/bin/arm-none-eabi-ar.exe
+CC := /g/GNU/MINGW/gcc-arm-none-eabi/bin/arm-none-eabi-gcc.exe
+AR := /g/GNU/MINGW/gcc-arm-none-eabi/bin/arm-none-eabi-ar.exe
 CFLAGS :=-W -O0
 
 SRCPATH:= ../../sources/kernel
