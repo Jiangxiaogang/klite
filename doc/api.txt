@@ -1,4 +1,4 @@
-KLite API参考手册 V1.1
+KLite API参考手册 V1.2
 
 1.功能特性
   KLite是一个为ARM Cortex-M微控制器设计的微内核,设计思想是"简洁易用".
@@ -83,7 +83,7 @@ KLite API参考手册 V1.1
     使用kmem_alloc申请的内存,在使用完毕后,请使用kmem_free释放内存.
 -------------------------------------------------------------------------------
 原型:
-    void  kmem_free(void* mem)
+    void kmem_free(void* mem)
 功能:
     释放由kmem_malloc申请的内存,功能和free一样
 参数:
@@ -125,7 +125,7 @@ KLite API参考手册 V1.1
     生错误,如果设置太大可能会由于系统内存不足而创建失败.
 -------------------------------------------------------------------------------
 原型:
-    void kthread_destroy(kthread_t thread)
+    void kthread_delete(kthread_t thread)
 功能:
     结束一个线程,并释放内存
 参数:
@@ -149,7 +149,7 @@ KLite API参考手册 V1.1
     线程优先级决定线程调度次序,越高的优先级具有越高的实时性,线程默认优先级为0
 -------------------------------------------------------------------------------
 原型:
-    int  kthread_getprio(kthread_t thread)
+    int kthread_getprio(kthread_t thread)
 功能:
     获取线程当前优先级
 参数:
@@ -185,7 +185,7 @@ KLite API参考手册 V1.1
     无
 -------------------------------------------------------------------------------
 原型:
-    void  kthread_suspend(kthread_t thread)
+    void kthread_suspend(kthread_t thread)
 功能:
     挂起指定线程
 参数:
@@ -196,7 +196,7 @@ KLite API参考手册 V1.1
     不能用来挂起当前线程.
 -------------------------------------------------------------------------------
 原型:
-    void  kthread_resume(kthread_t thread)
+    void kthread_resume(kthread_t thread)
 功能:
     恢复被挂起的线程
 参数:
@@ -207,7 +207,7 @@ KLite API参考手册 V1.1
     只能用来恢复被kthread_suspend函数挂起的线程.
 -------------------------------------------------------------------------------
 原型:
-    uint32_t  kthread_time(kthread_t thread)
+    uint32_t kthread_time(kthread_t thread)
 功能:
     获取线程自启动以来运行的节拍数.
 参数:
@@ -252,7 +252,7 @@ void kmutex_unlock(kmutex_t mutex)
 备注:
     kmutex_lock和kmutex_unlock必须成对出现,否则可能产生死锁.
 -------------------------------------------------------------------------------
-void kmutex_destroy(kmutex_t mutex)
+void kmutex_delete(kmutex_t mutex)
 功能:
     销毁一个互斥锁,并释放内存
 参数:
@@ -287,15 +287,15 @@ void ksem_wait(ksem_t sem)
 备注:
     无.
 -------------------------------------------------------------------------------
-int  ksem_timedwait(ksem_t sem, uint32_t timeout)
+bool ksem_timedwait(ksem_t sem, uint32_t timeout)
 功能:
     超时等待该信号量为一个非零值,如果未超时则将信号量的值减去1.
 参数:
     sem     信号量标识符.
     timeout 等待超时时间，单位为滴答节拍数
 返回值:
-    等待成功返回1.
-    等待超时返回0.
+    等待成功返回true.
+    等待超时返回false.
 备注:
     无.
 -------------------------------------------------------------------------------
@@ -319,7 +319,7 @@ uint32_t ksem_getvalue(ksem_t sem)
 备注:
     该函数在返回时,可能内部计数值已经发生改变.
 -------------------------------------------------------------------------------
-void ksem_destory(ksem_t sem)
+void ksem_delete(ksem_t sem)
 功能:
     销毁信号量对象,并释放内存.
 参数:
@@ -354,15 +354,15 @@ void kevent_wait(kevent_t event)
 备注:
     无.
 -------------------------------------------------------------------------------
-int  kevent_timedwait(kevent_t event, uint32_t timeout)
+bool kevent_timedwait(kevent_t event, uint32_t timeout)
 功能:
     定时等待事件.
 参数:
     event   事件标识符.
     timeout 等待超时时间，单位为滴答节拍数.
 返回值:
-    等待成功返回1.
-    等待超时返回0.
+    等待成功返回true.
+    等待超时返回false.
 备注:
     无.
 -------------------------------------------------------------------------------
@@ -374,9 +374,9 @@ void kevent_post(kevent_t event)
 返回值:
     无.
 备注:
-    所有等待这个事件的线程都会获得.
+    所有正在等待这个事件的线程都会被唤醒.
 -------------------------------------------------------------------------------
-void kevent_destory(kevent_t event)
+void kevent_delete(kevent_t event)
 功能:
     销毁事件对象,并释放内存.
 参数:
