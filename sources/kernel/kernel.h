@@ -82,14 +82,15 @@ void      kmutex_unlock(kmutex_t mutex);
 ******************************************************************************/
 kevent_t  kevent_create(bool state);
 void      kevent_delete(kevent_t event);
-void      kevent_post(kevent_t event);
+void      kevent_set(kevent_t event);
+void      kevent_reset(kevent_t event);
 void      kevent_wait(kevent_t event);
 bool      kevent_timedwait(kevent_t event, uint32_t timeout);
 
 /******************************************************************************
 * semaphore
 ******************************************************************************/
-ksem_t    ksem_create(uint32_t value);
+ksem_t    ksem_create(uint32_t value, uint32_t max);
 void      ksem_delete(ksem_t sem);
 void      ksem_post(ksem_t sem);
 void      ksem_wait(ksem_t sem);
@@ -103,9 +104,5 @@ uint32_t  ksem_getvalue(ksem_t sem);
 #define   sleep           kthread_sleep
 #define   malloc          kmem_alloc
 #define   free            kmem_free
-#define   kthread_destroy kthread_delete
-#define   kevent_destroy  kevent_delete
-#define   ksem_destroy    ksem_delete
-#define   kmutex_destroy  kmutex_delete
 
 #endif

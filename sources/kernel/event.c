@@ -59,7 +59,6 @@ void kevent_wait(kevent_t event)
     sched_lock();
     if(obj->state != false)
     {
-        obj->state = false;
         sched_unlock();
         return;
     }
@@ -75,7 +74,6 @@ bool kevent_timedwait(kevent_t event, uint32_t timeout)
     sched_lock();
     if(obj->state != false)
     {
-        obj->state = false;
         sched_unlock();
         return true;
     }
@@ -90,20 +88,24 @@ bool kevent_timedwait(kevent_t event, uint32_t timeout)
     return (sched_tcb_now->timeout != 0);
 }
 
-void kevent_post(kevent_t event)
+void kevent_set(kevent_t event)
 {
     struct event *obj;
     obj = (struct event *)event;
     sched_lock();
-    if(obj->head == NULL)
-    {
-        obj->state = true;
-        sched_unlock();
-        return;
-    }
+    obj->state = true;
     while(obj->head)
     {
         sched_tcb_ready(obj->head->tcb);
     }
+    sched_unlock();
+}
+
+void kevent_reset(kevent_t event)
+{
+    struct event *obj;
+    obj = (struct event *)event;
+    sched_lock();
+    obj->state = false;
     sched_unlock();
 }

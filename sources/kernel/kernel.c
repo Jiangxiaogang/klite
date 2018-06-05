@@ -29,7 +29,7 @@
 #include "port.h"
 
 #define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))
-#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(2,3,0)
+#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(2,4,0)
 
 static kthread_t m_idle_thread;
 

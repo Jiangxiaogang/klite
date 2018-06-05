@@ -32,9 +32,10 @@ struct sem
     struct tcb_node *head;
     struct tcb_node *tail;
     uint32_t value;
+    uint32_t limit;
 };
 
-ksem_t ksem_create(uint32_t value)
+ksem_t ksem_create(uint32_t value, uint32_t max)
 {
     struct sem *obj;
     obj = kmem_alloc(sizeof(struct sem));
@@ -43,6 +44,7 @@ ksem_t ksem_create(uint32_t value)
         obj->head = NULL;
         obj->tail = NULL;
         obj->value = value;
+        obj->limit = max;
     }
     return (ksem_t)obj;
 }
@@ -97,7 +99,10 @@ void ksem_post(ksem_t sem)
     sched_lock();
     if(obj->head == NULL)
     {
-        obj->value++;
+        if(obj->value < obj->limit)
+        {
+            obj->value++;
+        }
         sched_unlock();
         return;
     }
