@@ -78,16 +78,6 @@ void      kmutex_lock(kmutex_t mutex);
 void      kmutex_unlock(kmutex_t mutex);
 
 /******************************************************************************
-* event
-******************************************************************************/
-kevent_t  kevent_create(bool state);
-void      kevent_delete(kevent_t event);
-void      kevent_set(kevent_t event);
-void      kevent_reset(kevent_t event);
-void      kevent_wait(kevent_t event);
-bool      kevent_timedwait(kevent_t event, uint32_t timeout);
-
-/******************************************************************************
 * semaphore
 ******************************************************************************/
 ksem_t    ksem_create(uint32_t value, uint32_t max);
@@ -98,11 +88,25 @@ bool      ksem_timedwait(ksem_t sem, uint32_t timeout);
 uint32_t  ksem_getvalue(ksem_t sem);
 
 /******************************************************************************
+* event
+******************************************************************************/
+kevent_t  kevent_create(bool state, bool manual);
+void      kevent_delete(kevent_t event);
+void      kevent_set(kevent_t event);
+void      kevent_reset(kevent_t event);
+void      kevent_wait(kevent_t event);
+bool      kevent_timedwait(kevent_t event, uint32_t timeout);
+void      kevent_isr_set(kevent_t event);
+void      kevent_isr_reset(kevent_t event);
+void      kevent_isr_wait(kevent_t event);
+bool      kevent_isr_timedwait(kevent_t event, uint32_t timeout);
+
+/******************************************************************************
 * alias
 ******************************************************************************/
-#define   clock           kernel_time
-#define   sleep           kthread_sleep
 #define   malloc          kmem_alloc
 #define   free            kmem_free
+#define   clock           kernel_time
+#define   sleep           kthread_sleep
 
 #endif

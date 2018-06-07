@@ -26,23 +26,26 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
+#include "port.h"
 
 struct event
 {
     struct tcb_node *head;
     struct tcb_node *tail;
     bool state;
+    bool manual;
 };
 
-kevent_t kevent_create(bool state)
+kevent_t kevent_create(bool state, bool manual)
 {
     struct event *obj;
     obj = kmem_alloc(sizeof(struct event));
     if(obj != NULL)
     {
-        obj->head = NULL;
-        obj->tail = NULL;
-        obj->state = state;
+        obj->head   = NULL;
+        obj->tail   = NULL;
+        obj->state  = state;
+        obj->manual = manual;
     }
     return (kevent_t)obj;
 }
@@ -57,8 +60,12 @@ void kevent_wait(kevent_t event)
     struct event *obj;
     obj = (struct event *)event;
     sched_lock();
-    if(obj->state != false)
+    if(obj->state)
     {
+        if(!obj->manual)
+        {
+            obj->state = false;
+        }
         sched_unlock();
         return;
     }
@@ -72,8 +79,12 @@ bool kevent_timedwait(kevent_t event, uint32_t timeout)
     struct event *obj;
     obj = (struct event *)event;
     sched_lock();
-    if(obj->state != false)
+    if(obj->state)
     {
+        if(!obj->manual)
+        {
+            obj->state = false;
+        }
         sched_unlock();
         return true;
     }
@@ -94,9 +105,16 @@ void kevent_set(kevent_t event)
     obj = (struct event *)event;
     sched_lock();
     obj->state = true;
-    while(obj->head)
+    if(obj->head)
     {
-        sched_tcb_ready(obj->head->tcb);
+        if(!obj->manual)
+        {
+            obj->state = false;
+        }
+        while(obj->head)
+        {
+            sched_tcb_ready(obj->head->tcb);
+        }
     }
     sched_unlock();
 }
@@ -108,4 +126,77 @@ void kevent_reset(kevent_t event)
     sched_lock();
     obj->state = false;
     sched_unlock();
+}
+
+void kevent_isr_wait(kevent_t event)
+{
+    struct event *obj;
+    obj = (struct event *)event;
+    cpu_irq_disable();
+    if(obj->state)
+    {
+        if(!obj->manual)
+        {
+            obj->state = false;
+        }
+        cpu_irq_enable();
+        return;
+    }
+    sched_tcb_wait(sched_tcb_now, obj);
+    cpu_irq_enable();
+    sched_switch();
+}
+
+bool kevent_isr_timedwait(kevent_t event, uint32_t timeout)
+{
+    struct event *obj;
+    obj = (struct event *)event;
+    cpu_irq_disable();
+    if(obj->state)
+    {
+        if(!obj->manual)
+        {
+            obj->state = false;
+        }
+        cpu_irq_enable();
+        return true;
+    }
+    if(timeout == 0)
+    {
+        cpu_irq_enable();
+        return false;
+    }
+    sched_tcb_timedwait(sched_tcb_now, obj, timeout);
+    cpu_irq_enable();
+    sched_switch();
+    return (sched_tcb_now->timeout != 0);
+}
+
+void kevent_isr_set(kevent_t event)
+{
+    struct event *obj;
+    obj = (struct event *)event;
+    cpu_irq_disable();
+    obj->state = true;
+    if(obj->head)
+    {
+        if(!obj->manual)
+        {
+            obj->state = false;
+        }
+        while(obj->head)
+        {
+            sched_tcb_ready(obj->head->tcb);
+        }
+    }
+    cpu_irq_enable();
+}
+
+void kevent_isr_reset(kevent_t event)
+{
+    struct event *obj;
+    obj = (struct event *)event;
+    cpu_irq_disable();
+    obj->state = false;
+    cpu_irq_enable();
 }
