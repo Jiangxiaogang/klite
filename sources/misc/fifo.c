@@ -8,20 +8,21 @@
 
 struct fifo
 {
-    char* buff;
-    int   size;
-    int   in;
-    int   out;
-    int   overflow;
+    uint8_t *buff;
+    uint32_t size;
+    uint32_t in;
+    uint32_t out;
+    uint32_t overflow;
 };
 
-fifo_t fifo_create(int size)
+//创建FIFO
+fifo_t fifo_create(uint32_t size)
 {
-    struct fifo* fifo;
-    fifo = kmem_alloc(sizeof(struct fifo)+size);
+    struct fifo *fifo;
+    fifo = kmem_alloc(sizeof(struct fifo) + size);
     if(fifo != NULL)
     {
-        fifo->buff = (char*)(fifo+1);
+        fifo->buff = (uint8_t *)(fifo+1);
         fifo->size = size;
         fifo->in   = 0;
         fifo->out  = 0;
@@ -31,36 +32,40 @@ fifo_t fifo_create(int size)
     return NULL;
 }
 
-void fifo_destroy(fifo_t ff)
+//删除FIFO
+void fifo_delete(fifo_t ff)
 {
     kmem_free(ff);
 }
 
+//清空FIFO
 void fifo_clear(fifo_t ff)
 {
-    struct fifo* fifo;
-    fifo = (struct fifo*)ff;
+    struct fifo *fifo;
+    fifo = (struct fifo *)ff;
     fifo->in   = 0;
     fifo->out  = 0;
     fifo->overflow = 0;
 }
 
-int fifo_overflow(fifo_t ff)
+//返回溢出次数
+uint32_t fifo_overflow(fifo_t ff)
 {
-    struct fifo* fifo;
-    fifo = (struct fifo*)ff;
+    struct fifo *fifo;
+    fifo = (struct fifo *)ff;
     return fifo->overflow;
 }
 
-int fifo_read(fifo_t ff, void* buf, int len)
+//从FIFO读数据
+uint32_t fifo_read(fifo_t ff, void *buf, uint32_t len)
 {
-    int i;
-    int end;
-    char* data;
-    struct fifo* fifo;
+    uint32_t i;
+    uint32_t end;
+    uint8_t *data;
+    struct fifo *fifo;
     
+    fifo = (struct fifo *)ff;
     data = buf;
-    fifo = ff;
     end  = fifo->in;
     for(i=0; i<len; i++)
     {
@@ -77,14 +82,15 @@ int fifo_read(fifo_t ff, void* buf, int len)
     return i;
 }
 
-int fifo_write(fifo_t ff, void* buf, int len)
+//向FIFO写数据
+uint32_t fifo_write(fifo_t ff, void *buf, uint32_t len)
 {
-    int i;
-    int next;
-    char* data;
-    struct fifo* fifo;
+    uint32_t i;
+    uint32_t next;
+    uint8_t *data;
+    struct fifo * fifo;
 
-    fifo = ff;
+    fifo = (struct fifo *)ff;
     data = buf;
     for(i=0; i<len; i++)
     {

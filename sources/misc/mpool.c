@@ -11,7 +11,7 @@
 
 struct mpool
 {
-    uint32_t* pmem_addr;
+    uint32_t *pmem_addr;
     uint32_t  next_free;
     uint32_t  next_alloc;
     uint32_t  free_block;
@@ -24,9 +24,9 @@ mpool_t mpool_create(uint32_t block_size, uint32_t block_count)
 {
     uint32_t i;
     uint32_t mem_addr;
-    struct mpool* mpool;
+    struct mpool *mpool;
     
-    mpool = kmem_malloc((block_size+4)*block_count+sizeof(struct mpool));
+    mpool = kmem_alloc((block_size + sizeof(uint32_t)) * block_count + sizeof(struct mpool));
     if(mpool == NULL)
     {
         return NULL;
@@ -38,35 +38,34 @@ mpool_t mpool_create(uint32_t block_size, uint32_t block_count)
         return NULL;
     }
     
-    mpool->pmem_addr = (uint32_t*)(mpool+1);
-    mem_addr =  (uint32_t)(mpool->pmem_addr+block_count);
+    mpool->pmem_addr = (uint32_t *)(mpool + 1);
+    mem_addr = (uint32_t)(mpool->pmem_addr + block_count);
     mpool->next_free   = 0;
     mpool->next_alloc  = 0;
     mpool->free_block  = block_count;
     mpool->total_block = block_count;
-    for(i=0;i<block_count;i++)
+    for(i=0; i<block_count; i++)
     {
-        mpool_free(mpool,(void*)mem_addr);
+        mpool_free(mpool,(void *)mem_addr);
         mem_addr += block_size;
     }
     return mpool;
 }
 
-void mpool_destory(mpool_t mp)
+void mpool_delete(mpool_t pool)
 {
-    struct mpool* mpool;
-    
-    mpool = (struct mpool*)mp;
-    kmutex_destroy(mpool->mutex);
+    struct mpool *mpool;
+    mpool = (struct mpool *)pool;
+    kmutex_delete(mpool->mutex);
     kmem_free(mpool);
 }
 
-void* mpool_alloc(mpool_t mp)
+void *mpool_alloc(mpool_t pool)
 {
     uint32_t addr;
-    struct mpool* mpool;
+    struct mpool *mpool;
     
-    mpool = (struct mpool*)mp;
+    mpool = (struct mpool *)pool;
     if(mpool->free_block > 0)
     {
         kmutex_lock(mpool->mutex);
@@ -77,18 +76,18 @@ void* mpool_alloc(mpool_t mp)
         }
         mpool->free_block--;
         kmutex_unlock(mpool->mutex);
-        return (void*)addr;
+        return (void *)addr;
     }
     return NULL;
 }
 
-void mpool_free(mpool_t mp, void* mem)
+void mpool_free(mpool_t pool, void *mem)
 {
     uint32_t addr;
-    struct mpool* mpool;
+    struct mpool *mpool;
     
-    mpool = (struct mpool*)mp;
-    addr = (uint32_t)mem;
+    mpool = (struct mpool *)pool;
+    addr  = (uint32_t)mem;
     kmutex_lock(mpool->mutex);
     mpool->pmem_addr[mpool->next_free] = addr;
     if(++mpool->next_free >= mpool->total_block)
