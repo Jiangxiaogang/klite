@@ -1,24 +1,23 @@
-KLite说明文档
+KLite简介
 =====================
 KLite是免费开源软件,基于 MIT 协议开放源代码.
 作者: 蒋晓岗\<kerndev@foxmail.com> 保留所有权利.
 
 # 一.简介
-	KLite是一个基于ARM Cortex-M微控制器设计的抢占式操作系统内核,设计思想是“简洁易用”.  
-	它最大的特点在于简洁易用,可能是目前最简单易用的嵌入式操作系统内核.  
-	简洁的API风格,简洁的调用方式,简单的移植方法,大大降低学习和使用的难度.  
-	--支持256级优先级抢占  
+	KLite是一个基于ARM Cortex-M微控制器设计的抢占式操作系统内核.
+        其设计思想是“简洁易用”, 以降低学习和使用难度为目标.
+	简洁的API风格,简洁的调用方式,简单的移植方法,可能是目前最简单易用的嵌入式操作系统内核.
+	--支持优先级抢占  
 	--支持创建相同优先级的线程  
-	--支持动态内存管理  
+	--支持动态内存管理
+        --支持中断下半部（tasklet机制）  
 	--支持多编译器GCC, IAR, MDK
 
 # 二.移植
 	KLite已经为Cortex-M0/M3/M4架构做好了底层适配,如果你的CPU平台是基于以上平台的,
-	如STM32F0/1/2/3/4系列单片机,那么可以直接使用预编译的库文件进行开发,  
-	否则需要参考源代码自行移植CPU底层的汇编代码.
-	参考例程: 
-	http://git.oschina.net/kerndev/klite-demo
-	https://github.com/Jiangxiaogang/klite-demo
+	如STM32,GD32,NRF51,NRF52,Freescale K40等系列单片机,那么可以直接使用预编译的库文件进行开发,  
+	只需要修改port.c里面几个简单的函数即可开始编程.
+        否则需要参考源代码自行移植CPU底层的汇编代码.
 
 # 三.开始使用
 ## 1.编译KLite
@@ -40,6 +39,9 @@ KLite是免费开源软件,基于 MIT 协议开放源代码.
 		这个函数被空闲线程调用,为用户提供一个接口,用于实现那些在系统空闲时需要完成的工作,
 		大多数情况下这个函数什么也不用做.
 
+        void SysTick_Handler(void)
+                这个函数是平台相关的滴答时钟中断函数,需要在滴答时钟中断中调用kernel_timetick(n),n表示一次中断的毫秒数.
+
 ## 3.在main函数里面添加初始化代码
 	main函数的推荐写法如下:
 ```
@@ -52,13 +54,13 @@ void init(void* arg)
 void main(void)
 {
 	kernel_init(RAM_ADDR, RAM_SIZE);
-	kthread_create(init, 0, 0);
+	thread_create(init, 0, 0);
 	kernel_start();
 }
 ```
 	说明:
 	kernel_init 用于初始化KLite,并设置可用内存;  
-	kthread_create 创建第一个主线程init;  
+	thread_create 创建第一个主线程init;  
 	kernel_start 用于启动KLite;  
 	init是一个线程函数,在该函数中实现你的其它初始化代码.  
 	相关函数参数说明请参照API文档.  
