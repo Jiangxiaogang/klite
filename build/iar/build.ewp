@@ -2885,19 +2885,25 @@
       <name>$PROJ_DIR$\..\..\sources\kernel\event.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\sources\kernel\heap.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\sources\kernel\kernel.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\mem.c</name>
+      <name>$PROJ_DIR$\..\..\sources\kernel\mutex.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\mutex.c</name>
+      <name>$PROJ_DIR$\..\..\sources\kernel\object.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\sources\kernel\sched.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\sources\kernel\sem.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\sources\kernel\tasklet.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\sources\kernel\thread.c</name>

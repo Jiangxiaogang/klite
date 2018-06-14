@@ -386,11 +386,6 @@
               <FilePath>..\..\sources\kernel\kernel.c</FilePath>
             </File>
             <File>
-              <FileName>mem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\mem.c</FilePath>
-            </File>
-            <File>
               <FileName>mutex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\mutex.c</FilePath>
@@ -409,6 +404,21 @@
               <FileName>thread.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\thread.c</FilePath>
+            </File>
+            <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
+              <FileName>tasklet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
+            </File>
+            <File>
+              <FileName>object.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\object.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -967,11 +977,6 @@
               <FilePath>..\..\sources\kernel\kernel.c</FilePath>
             </File>
             <File>
-              <FileName>mem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\mem.c</FilePath>
-            </File>
-            <File>
               <FileName>mutex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\mutex.c</FilePath>
@@ -990,6 +995,21 @@
               <FileName>thread.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\thread.c</FilePath>
+            </File>
+            <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
+              <FileName>tasklet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
+            </File>
+            <File>
+              <FileName>object.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\object.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1548,11 +1568,6 @@
               <FilePath>..\..\sources\kernel\kernel.c</FilePath>
             </File>
             <File>
-              <FileName>mem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\mem.c</FilePath>
-            </File>
-            <File>
               <FileName>mutex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\mutex.c</FilePath>
@@ -1571,6 +1586,21 @@
               <FileName>thread.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\thread.c</FilePath>
+            </File>
+            <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
+              <FileName>tasklet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
+            </File>
+            <File>
+              <FileName>object.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\object.c</FilePath>
             </File>
           </Files>
         </Group>
