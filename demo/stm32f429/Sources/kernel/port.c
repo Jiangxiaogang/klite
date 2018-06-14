@@ -1,4 +1,5 @@
 #include "stm32f4xx.h"
+#include "kernel.h"
 
 #define HSE_FREQ_MHZ 16
 #define CPU_FREQ_MHZ 180
@@ -40,6 +41,10 @@ void cpu_os_start(void)
 
 void cpu_os_idle(void)
 {
-	//__WFI();
+	__WFI();
 }
 
+void SysTick_Handler(void)
+{
+    kernel_timetick(1);
+}

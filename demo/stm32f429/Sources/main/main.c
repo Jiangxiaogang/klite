@@ -20,28 +20,28 @@ static void timer_handler(void *arg)
 //LED闪烁线程1
 static void blink_thread1(void *arg)
 {
-	LOG("blink_thread1: 0x%08X\r\n", kthread_self());
+	LOG("blink_thread1: 0x%08X\r\n", thread_self());
 	gpio_open(PC, 10, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
 		gpio_write(PC, 10, 1);
-		kthread_sleep(200);
+		thread_sleep(200);
 		gpio_write(PC, 10, 0);
-		kthread_sleep(200);
+		thread_sleep(200);
 	}
 }
 
 //LED闪烁线程2
 static void blink_thread2(void *arg)
 {
-	LOG("blink_thread2: 0x%08X\r\n", kthread_self());
+	LOG("blink_thread2: 0x%08X\r\n", thread_self());
 	gpio_open(PC, 11, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
 		gpio_write(PC, 11, 1);
-		kthread_sleep(500);
+		thread_sleep(500);
 		gpio_write(PC, 11, 0);
-		kthread_sleep(500);
+		thread_sleep(500);
 	}
 }
 
@@ -55,10 +55,10 @@ static void usage_thread(void *arg)
 	uint32_t total;
 	
 	ver = kernel_version();
-	kmem_usage(&total, &used);
+	heap_usage(&total, &used);
 	LOG("KLite V%d.%d.%d\r\n", (ver>>24)&0xFF, (ver>>16)&0xFF, ver&0xFFFF);	
 	LOG("memory: %d/%d Bytes\r\n", used, total);
-	LOG("thread: 0x%08X\r\n", kthread_self());
+	LOG("thread: 0x%08X\r\n", thread_self());
 	
 	while(1)
 	{
@@ -67,7 +67,7 @@ static void usage_thread(void *arg)
 		sleep(1000);
 		tick = kernel_time() - tick;
 		idle = kernel_idletime() - idle;
-		kmem_usage(&total, &used);
+		heap_usage(&total, &used);
 		LOG("CPU:%2d%%, RAM:%d/%dB\r\n", 100*(tick-idle)/tick, used, total);
 	}
 }
@@ -85,9 +85,9 @@ void app_init(void)
     timer_init(1024, 0);
     m_timer = timer_create();
     timer_start(m_timer, 1000, timer_handler, 0);
-	kthread_create(usage_thread, 0, 0);
-	kthread_create(blink_thread1, 0, 0);
-    kthread_create(blink_thread2, 0, 0);
+	thread_create(usage_thread, 0, 0);
+	thread_create(blink_thread1, 0, 0);
+    thread_create(blink_thread2, 0, 0);
 }
 
 //初始化线程
@@ -101,6 +101,7 @@ int main(void)
 {
 	static uint8_t heap[8*1024];
 	kernel_init((uint32_t)heap, 8*1024);
-	kthread_create(init, 0, 0);
+    //tasklet_init(1024); //tasklet必须初始化才能使用
+	thread_create(init, 0, 0);
 	kernel_start();
 }
