@@ -36,8 +36,8 @@ void cpu_tcb_init(struct tcb *tcb)
     sp = (uint32_t *)(tcb->sp_max & 0xFFFFFFF8);
     
     *(--sp) = 0x01000000;               // xPSR
-    *(--sp) = (uint32_t)tcb->func;      // PC
-    *(--sp) = (uint32_t)kthread_exit;   // R14(LR)
+    *(--sp) = (uint32_t)tcb->entry;     // PC
+    *(--sp) = (uint32_t)thread_exit ;   // R14(LR)
     *(--sp) = 0;                        // R12
     *(--sp) = 0;                        // R3
     *(--sp) = 0;                        // R2
@@ -59,9 +59,3 @@ void cpu_tcb_switch(void)
 {
     NVIC_INT_CTRL = PEND_INT_SET;
 }
-
-void SysTick_Handler(void)
-{
-    sched_timetick();
-}
-

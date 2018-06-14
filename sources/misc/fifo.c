@@ -19,7 +19,7 @@ struct fifo
 fifo_t fifo_create(uint32_t size)
 {
     struct fifo *fifo;
-    fifo = kmem_alloc(sizeof(struct fifo) + size);
+    fifo = heap_alloc(sizeof(struct fifo) + size);
     if(fifo != NULL)
     {
         fifo->buff = (uint8_t *)(fifo+1);
@@ -35,7 +35,7 @@ fifo_t fifo_create(uint32_t size)
 //删除FIFO
 void fifo_delete(fifo_t ff)
 {
-    kmem_free(ff);
+    heap_free(ff);
 }
 
 //清空FIFO

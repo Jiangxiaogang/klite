@@ -29,11 +29,12 @@
 #include "port.h"
 
 #define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))
-#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(2,5,0)
+#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(3,0,0)
 
-static kthread_t m_idle_thread;
+static thread_t m_idle_thread;
+static uint32_t m_tick_count;
 
-extern void kmem_init(uint32_t addr, uint32_t size);
+extern void heap_init(uint32_t addr, uint32_t size);
 
 static void idle_thread(void *arg)
 {
@@ -45,15 +46,15 @@ static void idle_thread(void *arg)
 
 static void idle_init(void)
 {
-    m_idle_thread = kthread_create(idle_thread, 0, 0);
-    kthread_setprio(m_idle_thread, THREAD_PRIORITY_MIN - 1);
+    m_idle_thread = thread_create(idle_thread, 0, 0);
+    thread_setprio(m_idle_thread, THREAD_PRIORITY_MIN - 1);
 }
 
-void kernel_init(uint32_t mem_addr, uint32_t mem_size)
+void kernel_init(uint32_t heap_addr, uint32_t heap_size)
 {
     cpu_os_init();
     sched_init();
-    kmem_init(mem_addr, mem_size);
+    heap_init(heap_addr, heap_size);
     idle_init();
 }
 
@@ -64,6 +65,13 @@ void kernel_start(void)
     cpu_os_idle();
 }
 
+void kernel_timetick(uint32_t time)
+{
+    m_tick_count += time;
+    sched_timetick(time);
+    sched_preempt();
+}
+
 uint32_t kernel_version(void)
 {
     return KERNEL_VERSION_CODE;
@@ -71,10 +79,10 @@ uint32_t kernel_version(void)
 
 uint32_t kernel_time(void)
 {
-    return sched_tick_count;
+    return m_tick_count;
 }
 
 uint32_t kernel_idletime(void)
 {
-    return kthread_time(m_idle_thread);
+    return thread_time(m_idle_thread);
 }

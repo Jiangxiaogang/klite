@@ -26,6 +26,7 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
+#include "object.h"
 
 struct mutex
 {
@@ -34,25 +35,25 @@ struct mutex
     bool lock;
 };
 
-kmutex_t kmutex_create(void)
+mutex_t mutex_create(void)
 {
     struct mutex *obj;
-    obj = kmem_alloc(sizeof(struct mutex));
+    obj = heap_alloc(sizeof(struct mutex));
     if(obj != NULL)
     {
         obj->head = NULL;
         obj->tail = NULL;
         obj->lock = false;
     }
-    return (kmutex_t)obj;
+    return (mutex_t)obj;
 }
 
-void kmutex_delete(kmutex_t mutex)
+void mutex_delete(mutex_t mutex)
 {
-    kmem_free(mutex);
+    heap_free(mutex);
 }
 
-void kmutex_lock(kmutex_t mutex)
+void mutex_lock(mutex_t mutex)
 {
     struct mutex *obj;
     obj = (struct mutex *)mutex;
@@ -63,22 +64,19 @@ void kmutex_lock(kmutex_t mutex)
         sched_unlock();
         return;
     }
-    sched_tcb_wait(sched_tcb_now, obj);
+    object_wait((struct object *)obj, sched_tcb_now);
     sched_unlock();
     sched_switch();
 }
 
-void kmutex_unlock(kmutex_t mutex)
+void mutex_unlock(mutex_t mutex)
 {
     struct mutex *obj;
     obj = (struct mutex *)mutex;
     sched_lock();
-    if(obj->head == NULL)
+    if(!object_wake_one((struct object *)obj))
     {
         obj->lock = false;
-        sched_unlock();
-        return;
     }
-    sched_tcb_ready(obj->head->tcb);
     sched_unlock();
 }

@@ -10,22 +10,22 @@
 struct mbox_object
 {
     uint32_t data;
-    kevent_t event;
+    event_t  event;
 };
 
 mbox_t mbox_create(void)
 {
     struct mbox_object *obj;
-    obj = kmem_alloc(sizeof(struct mbox_object));
+    obj = heap_alloc(sizeof(struct mbox_object));
     if(obj != NULL)
     {
         obj->data = 0;
-        obj->event= kevent_create(false, false);
+        obj->event= event_create(false, false);
         if(obj->event)
         {
             return obj;
         }
-        kmem_free(obj);
+        heap_free(obj);
     }
     return NULL;
 }
@@ -34,8 +34,8 @@ void mbox_delete(mbox_t mbox)
 {
     struct mbox_object *obj;
     obj = (struct mbox_object *)mbox;
-    kevent_delete(obj->event);
-    kmem_free(obj);
+    event_delete(obj->event);
+    heap_free(obj);
 }
 
 void mbox_post(mbox_t mbox, uint32_t data)
@@ -43,14 +43,14 @@ void mbox_post(mbox_t mbox, uint32_t data)
     struct mbox_object* obj;
     obj = (struct mbox_object*)mbox;
     obj->data = data;
-    kevent_set(obj->event);
+    event_set(obj->event);
 }
 
 void mbox_wait(mbox_t mbox, uint32_t *pdata)
 {
     struct mbox_object *obj;
     obj = (struct mbox_object *)mbox;
-    kevent_wait(obj->event);
+    event_wait(obj->event);
     *pdata = obj->data;
 }
 
@@ -59,7 +59,7 @@ bool mbox_timedwait(mbox_t mbox, uint32_t timeout, uint32_t *pdata)
     bool ret;
     struct mbox_object *obj;
     obj = (struct mbox_object *)mbox;
-    ret = kevent_timedwait(obj->event, timeout);
+    ret = event_timedwait(obj->event, timeout);
     *pdata = obj->data;
     return ret;
 }

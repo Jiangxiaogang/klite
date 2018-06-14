@@ -24,6 +24,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 ******************************************************************************/
+#include "kernel.h"
+
 void cpu_os_init(void)
 {
     //TODO: init cpu clocks.
@@ -31,10 +33,16 @@ void cpu_os_init(void)
 
 void cpu_os_start(void)
 {
-    //TODO: init systick and pendsv.
+    //TODO: init systick.
 }
 
 void cpu_os_idle(void)
 {
     //TODO: cpu enter idle.
+}
+
+//systick irq handler
+void SysTick_Handler(void)
+{
+    kernel_timetick(1);
 }

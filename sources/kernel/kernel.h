@@ -31,26 +31,28 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef void *kthread_t;
-typedef void *kmutex_t;
-typedef void *kevent_t;
-typedef void *ksem_t;
+typedef void *thread_t;
+typedef void *mutex_t;
+typedef void *event_t;
+typedef void *sem_t;
+typedef void *tasklet_t;
 
 /******************************************************************************
 * kernel
 ******************************************************************************/
-void      kernel_init(uint32_t mem_addr, uint32_t mem_size);
-void      kernel_start(void);
-uint32_t  kernel_time(void);
-uint32_t  kernel_idletime(void);
-uint32_t  kernel_version(void);
+void     kernel_init(uint32_t heap_addr, uint32_t heap_size);
+void     kernel_start(void);
+void     kernel_timetick(uint32_t time);
+uint32_t kernel_time(void);
+uint32_t kernel_idletime(void);
+uint32_t kernel_version(void);
 
 /******************************************************************************
-* memory
+* heap
 ******************************************************************************/
-void     *kmem_alloc(uint32_t size);
-void      kmem_free(void *mem);
-void      kmem_usage(uint32_t *total, uint32_t *used);
+void    *heap_alloc(uint32_t size);
+void     heap_free(void *p);
+void     heap_usage(uint32_t *total, uint32_t *used);
 
 /******************************************************************************
 * thread
@@ -58,51 +60,58 @@ void      kmem_usage(uint32_t *total, uint32_t *used);
 #define THREAD_PRIORITY_MAX (+127)
 #define THREAD_PRIORITY_MIN (-127)
 
-kthread_t kthread_create(void (*func)(void *), void *arg, uint32_t stk_size);
-void      kthread_delete(kthread_t thread);
-void      kthread_suspend(kthread_t thread);
-void      kthread_resume(kthread_t thread);
-void      kthread_setprio(kthread_t thread, int prio);
-int       kthread_getprio(kthread_t thread);
-uint32_t  kthread_time(kthread_t thread);
-void      kthread_sleep(uint32_t tick);
-void      kthread_exit(void);
-kthread_t kthread_self(void);
+thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size);
+void     thread_delete(thread_t thread);
+void     thread_suspend(thread_t thread);
+void     thread_resume(thread_t thread);
+void     thread_setprio(thread_t thread, int prio);
+int      thread_getprio(thread_t thread);
+uint32_t thread_time(thread_t thread);
+void     thread_sleep(uint32_t time);
+void     thread_exit(void);
+thread_t thread_self(void);
 
 /******************************************************************************
 * mutex
 ******************************************************************************/
-kmutex_t  kmutex_create(void);
-void      kmutex_delete(kmutex_t mutex);
-void      kmutex_lock(kmutex_t mutex);
-void      kmutex_unlock(kmutex_t mutex);
-
-/******************************************************************************
-* semaphore
-******************************************************************************/
-ksem_t    ksem_create(uint32_t value, uint32_t max);
-void      ksem_delete(ksem_t sem);
-void      ksem_post(ksem_t sem);
-void      ksem_wait(ksem_t sem);
-bool      ksem_timedwait(ksem_t sem, uint32_t timeout);
-uint32_t  ksem_getvalue(ksem_t sem);
+mutex_t  mutex_create(void);
+void     mutex_delete(mutex_t mutex);
+void     mutex_lock(mutex_t mutex);
+void     mutex_unlock(mutex_t mutex);
 
 /******************************************************************************
 * event
 ******************************************************************************/
-kevent_t  kevent_create(bool state, bool manual);
-void      kevent_delete(kevent_t event);
-void      kevent_set(kevent_t event);
-void      kevent_reset(kevent_t event);
-void      kevent_wait(kevent_t event);
-bool      kevent_timedwait(kevent_t event, uint32_t timeout);
+event_t  event_create(bool state, bool manual);
+void     event_delete(event_t event);
+void     event_set(event_t event);
+void     event_reset(event_t event);
+void     event_wait(event_t event);
+bool     event_timedwait(event_t event, uint32_t timeout);
+
+/******************************************************************************
+* semaphore
+******************************************************************************/
+sem_t    sem_create(uint32_t init_value, uint32_t max_value);
+void     sem_delete(sem_t sem);
+void     sem_post(sem_t sem);
+void     sem_wait(sem_t sem);
+bool     sem_timedwait(sem_t sem, uint32_t timeout);
+uint32_t sem_getvalue(sem_t sem);
+
+/******************************************************************************
+* tasklet
+******************************************************************************/
+void      tasklet_init(uint32_t stack_size);
+tasklet_t tasklet_create(void (*func)(void *), void *data);
+void      tasklet_delete(tasklet_t tasklet);
+void      tasklet_schedule(tasklet_t tasklet);
 
 /******************************************************************************
 * alias
 ******************************************************************************/
-#define   malloc          kmem_alloc
-#define   free            kmem_free
-#define   clock           kernel_time
-#define   sleep           kthread_sleep
+#define  malloc heap_alloc
+#define  free   heap_free
+#define  sleep  thread_sleep
 
 #endif

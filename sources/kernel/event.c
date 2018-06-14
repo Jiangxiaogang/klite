@@ -26,7 +26,7 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
-#include "port.h"
+#include "object.h"
 
 struct event
 {
@@ -36,10 +36,10 @@ struct event
     bool manual;
 };
 
-kevent_t kevent_create(bool state, bool manual)
+event_t event_create(bool state, bool manual)
 {
     struct event *obj;
-    obj = kmem_alloc(sizeof(struct event));
+    obj = heap_alloc(sizeof(struct event));
     if(obj != NULL)
     {
         obj->head   = NULL;
@@ -47,15 +47,15 @@ kevent_t kevent_create(bool state, bool manual)
         obj->state  = state;
         obj->manual = manual;
     }
-    return (kevent_t)obj;
+    return (event_t)obj;
 }
 
-void kevent_delete(kevent_t event)
+void event_delete(event_t event)
 {
-    kmem_free(event);
+    heap_free(event);
 }
 
-void kevent_wait(kevent_t event)
+void event_wait(event_t event)
 {
     struct event *obj;
     obj = (struct event *)event;
@@ -69,12 +69,12 @@ void kevent_wait(kevent_t event)
         sched_unlock();
         return;
     }
-    sched_tcb_wait(sched_tcb_now, obj);
+    object_wait((struct object *)obj, sched_tcb_now);
     sched_unlock();
     sched_switch();
 }
 
-bool kevent_timedwait(kevent_t event, uint32_t timeout)
+bool event_timedwait(event_t event, uint32_t timeout)
 {
     struct event *obj;
     obj = (struct event *)event;
@@ -93,33 +93,29 @@ bool kevent_timedwait(kevent_t event, uint32_t timeout)
         sched_unlock();
         return false;
     }
-    sched_tcb_timedwait(sched_tcb_now, obj, timeout);
+    object_wait_timeout((struct object *)obj, sched_tcb_now, timeout);
     sched_unlock();
     sched_switch();
     return (sched_tcb_now->timeout != 0);
 }
 
-void kevent_set(kevent_t event)
+void event_set(event_t event)
 {
     struct event *obj;
     obj = (struct event *)event;
     sched_lock();
     obj->state = true;
-    if(obj->head)
+    if(object_wake_all((struct object *)obj))
     {
         if(!obj->manual)
         {
             obj->state = false;
         }
-        while(obj->head)
-        {
-            sched_tcb_ready(obj->head->tcb);
-        }
     }
     sched_unlock();
 }
 
-void kevent_reset(kevent_t event)
+void event_reset(event_t event)
 {
     struct event *obj;
     obj = (struct event *)event;
@@ -127,4 +123,3 @@ void kevent_reset(kevent_t event)
     obj->state = false;
     sched_unlock();
 }
-

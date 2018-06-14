@@ -16,7 +16,7 @@ struct mpool
     uint32_t  next_alloc;
     uint32_t  free_block;
     uint32_t  total_block;
-    kmutex_t  mutex;
+    mutex_t   mutex;
 };
 
 
@@ -26,15 +26,15 @@ mpool_t mpool_create(uint32_t block_size, uint32_t block_count)
     uint32_t mem_addr;
     struct mpool *mpool;
     
-    mpool = kmem_alloc((block_size + sizeof(uint32_t)) * block_count + sizeof(struct mpool));
+    mpool = heap_alloc((block_size + sizeof(uint32_t)) * block_count + sizeof(struct mpool));
     if(mpool == NULL)
     {
         return NULL;
     }
-    mpool->mutex= kmutex_create();
+    mpool->mutex= mutex_create();
     if(mpool->mutex == NULL)
     {
-        kmem_free(mpool);
+        heap_free(mpool);
         return NULL;
     }
     
@@ -56,8 +56,8 @@ void mpool_delete(mpool_t pool)
 {
     struct mpool *mpool;
     mpool = (struct mpool *)pool;
-    kmutex_delete(mpool->mutex);
-    kmem_free(mpool);
+    mutex_delete(mpool->mutex);
+    heap_free(mpool);
 }
 
 void *mpool_alloc(mpool_t pool)
@@ -68,14 +68,14 @@ void *mpool_alloc(mpool_t pool)
     mpool = (struct mpool *)pool;
     if(mpool->free_block > 0)
     {
-        kmutex_lock(mpool->mutex);
+        mutex_lock(mpool->mutex);
         addr = mpool->pmem_addr[mpool->next_alloc];
         if(++mpool->next_alloc >= mpool->total_block)
         {
             mpool->next_alloc = 0;
         }
         mpool->free_block--;
-        kmutex_unlock(mpool->mutex);
+        mutex_unlock(mpool->mutex);
         return (void *)addr;
     }
     return NULL;
@@ -88,13 +88,13 @@ void mpool_free(mpool_t pool, void *mem)
     
     mpool = (struct mpool *)pool;
     addr  = (uint32_t)mem;
-    kmutex_lock(mpool->mutex);
+    mutex_lock(mpool->mutex);
     mpool->pmem_addr[mpool->next_free] = addr;
     if(++mpool->next_free >= mpool->total_block)
     {
         mpool->next_free = 0;
     }
     mpool->free_block++;
-    kmutex_unlock(mpool->mutex);
+    mutex_unlock(mpool->mutex);
 }
 

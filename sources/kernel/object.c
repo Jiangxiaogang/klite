@@ -26,36 +26,51 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
+#include "list.h"
+#include "object.h"
 
-#define NVIC_INT_CTRL (*((volatile uint32_t *)0xE000ED04))
-#define PEND_INT_SET  (1<<28)
-
-void cpu_tcb_init(struct tcb *tcb)
+void object_wait(struct object *obj, struct tcb *tcb)
 {
-    uint32_t *sp;
-    sp = (uint32_t *)(tcb->sp_max & 0xFFFFFFF8);
-    
-    *(--sp) = 0x01000000;               // xPSR
-    *(--sp) = (uint32_t)tcb->entry;     // PC
-    *(--sp) = (uint32_t)thread_exit;    // R14(LR)
-    *(--sp) = 0;                        // R12
-    *(--sp) = 0;                        // R3
-    *(--sp) = 0;                        // R2
-    *(--sp) = 0;                        // R1
-    *(--sp) = (uint32_t)tcb->arg;       // R0
-
-    *(--sp) = 0;                        // R11
-    *(--sp) = 0;                        // R10
-    *(--sp) = 0;                        // R9
-    *(--sp) = 0;                        // R8
-    *(--sp) = 0;                        // R7
-    *(--sp) = 0;                        // R6
-    *(--sp) = 0;                        // R5
-    *(--sp) = 0;                        // R4
-    tcb->sp = (uint32_t)sp;
+    tcb->state = TCB_STATE_WAIT;
+    tcb->lwait = (struct tcb_list *)obj;
+    list_append(obj, tcb->nwait);
 }
 
-void cpu_tcb_switch(void)
+void object_wait_timeout(struct object *obj, struct tcb *tcb, uint32_t timeout)
 {
-    NVIC_INT_CTRL = PEND_INT_SET;
+    tcb->state = TCB_STATE_TIMEDWAIT;
+    tcb->lwait = (struct tcb_list *)obj;
+    list_append(obj, tcb->nwait);
+    sched_tcb_sleep(tcb, timeout);
+}
+
+bool object_wake_one(struct object *obj)
+{
+    struct tcb *tcb;
+    if(obj->head)
+    {
+        tcb = obj->head->tcb;
+        tcb->lwait = NULL;
+        list_remove(obj, tcb->nwait);
+        sched_tcb_ready(tcb);
+        return true;
+    }
+    return false;
+}
+
+bool object_wake_all(struct object *obj)
+{
+    struct tcb *tcb;
+    if(obj->head)
+    {
+        while(obj->head)
+        {
+            tcb = obj->head->tcb;
+            tcb->lwait = NULL;
+            list_remove(obj, tcb->nwait);
+            sched_tcb_ready(tcb);
+        }
+        return true;
+    }
+    return false;
 }

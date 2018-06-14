@@ -24,8 +24,8 @@ struct timer_list
 {
     struct timer *head;
     struct timer *tail;
-    kmutex_t mutex;
-    kevent_t event;
+    mutex_t mutex;
+    event_t event;
 };
 
 static struct timer_list m_timer_list;
@@ -36,7 +36,7 @@ static uint32_t timer_timetick(uint32_t tick)
     uint32_t next_time;
     struct timer *node;
     next_time = 0xFFFFFFFF;
-    kmutex_lock(m_timer_list.mutex);
+    mutex_lock(m_timer_list.mutex);
     for(node = m_timer_list.head; node!=NULL; node=node->next)
     {
         if(node->counter > tick)
@@ -53,7 +53,7 @@ static uint32_t timer_timetick(uint32_t tick)
             next_time = node->counter;
         }
     }
-    kmutex_unlock(m_timer_list.mutex);
+    mutex_unlock(m_timer_list.mutex);
     return next_time;
 }
 
@@ -73,7 +73,7 @@ static void timer_thread_entry(void *arg)
         tick = kernel_time() - last;
         if(timeout > tick)
         {
-            kevent_timedwait(m_timer_list.event, timeout - tick);
+            event_timedwait(m_timer_list.event, timeout - tick);
         }
     }
 }
@@ -82,7 +82,7 @@ static void timer_thread_entry(void *arg)
 timer_t timer_create(void)
 {
     struct timer *node;
-    node = kmem_alloc(sizeof(struct timer));
+    node = heap_alloc(sizeof(struct timer));
     if(node != NULL)
     {
         memset(node, 0, sizeof(struct timer));
@@ -94,7 +94,7 @@ timer_t timer_create(void)
 void timer_delete(timer_t timer)
 {
     timer_stop(timer);
-    kmem_free(timer);
+    heap_free(timer);
 }
 
 //启动定时器
@@ -106,10 +106,10 @@ void timer_start(timer_t timer, uint32_t timeout, void (*handler)(void *), void 
     node->timeout = timeout;
     node->arg     = arg;
     node->handler = handler;
-    kmutex_lock(m_timer_list.mutex);
+    mutex_lock(m_timer_list.mutex);
     list_append(&m_timer_list, node);
-    kmutex_unlock(m_timer_list.mutex);
-    kevent_set(m_timer_list.event);
+    mutex_unlock(m_timer_list.mutex);
+    event_set(m_timer_list.event);
 }
 
 //停止定时器
@@ -117,20 +117,20 @@ void timer_stop(timer_t timer)
 {
     struct timer *node;
     node = (struct timer *)timer;
-    kmutex_lock(m_timer_list.mutex);
+    mutex_lock(m_timer_list.mutex);
     list_remove(&m_timer_list, node);
-    kmutex_unlock(m_timer_list.mutex);
-    kevent_set(m_timer_list.event);
+    mutex_unlock(m_timer_list.mutex);
+    event_set(m_timer_list.event);
 }
 
 //初始化定时器模块
 //设置定时器线程的堆栈大小和线程优先级
 void timer_init(uint32_t stk_size, int prio)
 {
-    kthread_t thread;
+    thread_t thread;
     list_init(&m_timer_list);
-    m_timer_list.mutex = kmutex_create();
-    m_timer_list.event = kevent_create(false, false);
-    thread = kthread_create(timer_thread_entry, 0, stk_size);
-    kthread_setprio(thread, prio);
+    m_timer_list.mutex = mutex_create();
+    m_timer_list.event = event_create(false, false);
+    thread = thread_create(timer_thread_entry, 0, stk_size);
+    thread_setprio(thread, prio);
 }
