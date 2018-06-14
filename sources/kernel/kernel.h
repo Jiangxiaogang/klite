@@ -96,10 +96,6 @@ void      kevent_set(kevent_t event);
 void      kevent_reset(kevent_t event);
 void      kevent_wait(kevent_t event);
 bool      kevent_timedwait(kevent_t event, uint32_t timeout);
-void      kevent_isr_set(kevent_t event);
-void      kevent_isr_reset(kevent_t event);
-void      kevent_isr_wait(kevent_t event);
-bool      kevent_isr_timedwait(kevent_t event, uint32_t timeout);
 
 /******************************************************************************
 * alias
