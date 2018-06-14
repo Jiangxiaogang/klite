@@ -38,13 +38,13 @@ struct tasklet_node
     void  *data;
 };
 
-struct lasklet_list
+struct tasklet_list
 {
     struct tasklet_node *head;
     struct tasklet_node *tail;
 };
 
-static struct lasklet_list m_tasklet_list;
+static struct tasklet_list m_tasklet_list;
 
 static void tasklet_thread(void *arg)
 {
