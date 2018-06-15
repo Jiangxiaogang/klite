@@ -51,19 +51,24 @@ static void tasklet_thread(void *arg)
     struct tasklet_node *node;
     while(1)
     {
-        while(m_tasklet_list.head)
+        cpu_irq_disable();
+        node = m_tasklet_list.head;
+        if(node != NULL)
         {
-            node = m_tasklet_list.head;
+            cpu_irq_enable();
             node->func(node->data);
+            
             cpu_irq_disable();
             node->state = false;
             list_remove(&m_tasklet_list, node);
             cpu_irq_enable();
         }
-        cpu_irq_disable();
-        sched_tcb_isr->state = TCB_STATE_SUSPEND|TCB_STATE_READY;
-        cpu_irq_enable();
-        sched_switch();
+        else
+        {
+            sched_tcb_isr->state = TCB_STATE_SUSPEND|TCB_STATE_READY;
+            cpu_irq_enable();
+            sched_switch();
+        }
     }
 }
 

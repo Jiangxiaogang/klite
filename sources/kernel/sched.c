@@ -51,10 +51,13 @@ static void sched_tcb_insert(struct tcb_list *list, struct tcb_node *node)
 
 static void sched_tcb_switch(struct tcb *tcb)
 {
-    tcb->state    = TCB_STATE_SWITCH;
-    tcb->lsched   = NULL;
-    sched_tcb_new = tcb;
-    cpu_tcb_switch();
+    if(sched_tcb_now != tcb)
+    {
+        tcb->state = TCB_STATE_SWITCH;
+        tcb->lsched = NULL;
+        sched_tcb_new = tcb;
+        cpu_tcb_switch();
+    }
 }
 
 void sched_tcb_init(struct tcb *tcb)
@@ -194,11 +197,8 @@ void sched_switch(void)
         }
     }
     tcb = sched_list_ready.head->tcb;
-    if(sched_tcb_now != tcb)
-    {
-        list_remove(&sched_list_ready, tcb->nsched);
-        sched_tcb_switch(tcb);
-    }
+    list_remove(&sched_list_ready, tcb->nsched);
+    sched_tcb_switch(tcb);
     cpu_irq_enable();
 }
 
