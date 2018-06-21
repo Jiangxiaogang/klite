@@ -36,17 +36,31 @@ static uint32_t         sched_lock_count;
 static struct tcb_list  sched_list_sleep;
 static struct tcb_list  sched_list_ready;
 
-static void sched_tcb_insert(struct tcb_list *list, struct tcb_node *node)
+void sched_tcb_insert(struct tcb_list *list, struct tcb_node *node)
 {
     struct tcb_node *find;
-    for(find=list->tail; find!=NULL; find=find->prev)
+    if(node->tcb->prio > 0)
     {
-        if(find->tcb->prio >= node->tcb->prio)
+        for(find = list->head; find != NULL; find = find->next)
         {
-            break;
+            if(find->tcb->prio < node->tcb->prio)
+            {
+                break;
+            }
         }
+        list_insert_before(list, find, node);
     }
-    list_insert_after(list, find, node);
+    else
+    {
+        for(find = list->tail; find != NULL; find = find->prev)
+        {
+            if(find->tcb->prio >= node->tcb->prio)
+            {
+                break;
+            }
+        }
+        list_insert_after(list, find, node);
+    }
 }
 
 static void sched_tcb_switch(struct tcb *tcb)
@@ -150,16 +164,18 @@ void sched_timetick(uint32_t time)
     }
 }
 
-
 void sched_preempt(void)
 {
     struct tcb *tcb;
+    cpu_irq_disable();
     if(sched_lock_count != 0)
     {
+        cpu_irq_enable();
         return;
     }
     if(sched_tcb_now->state != TCB_STATE_RUNNING)
     {
+        cpu_irq_enable();
         return;
     }
     if(sched_tcb_isr != NULL)
@@ -168,6 +184,7 @@ void sched_preempt(void)
         {
             sched_tcb_ready(sched_tcb_now);
             sched_tcb_switch(sched_tcb_isr);
+            cpu_irq_enable();
             return;
         }
     }
@@ -181,6 +198,7 @@ void sched_preempt(void)
             sched_tcb_switch(tcb);
         }
     }
+    cpu_irq_enable();
 }
 
 void sched_switch(void)

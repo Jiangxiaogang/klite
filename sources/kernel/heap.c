@@ -68,11 +68,16 @@ static void heap_lock(void)
 static void heap_unlock(void)
 {
     sched_lock();
-    if(!object_wake_one((struct object *)m_heap_mutex))
+    if(object_wake_one((struct object *)m_heap_mutex))
+    {
+        sched_unlock();
+        sched_preempt();
+    }
+    else
     {
         m_heap_mutex->lock = false;
+        sched_unlock();
     }
-    sched_unlock();
 }
 
 static struct heap_node *find_next_free(struct heap_node *node)

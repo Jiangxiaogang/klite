@@ -74,9 +74,14 @@ void mutex_unlock(mutex_t mutex)
     struct mutex *obj;
     obj = (struct mutex *)mutex;
     sched_lock();
-    if(!object_wake_one((struct object *)obj))
+    if(object_wake_one((struct object *)obj))
+    {
+        sched_unlock();
+        sched_preempt();
+    }
+    else
     {
         obj->lock = false;
+        sched_unlock();
     }
-    sched_unlock();
 }

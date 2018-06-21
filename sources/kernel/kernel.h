@@ -68,6 +68,7 @@ void     thread_setprio(thread_t thread, int prio);
 int      thread_getprio(thread_t thread);
 uint32_t thread_time(thread_t thread);
 void     thread_sleep(uint32_t time);
+void     thread_yield(void);
 void     thread_exit(void);
 thread_t thread_self(void);
 

@@ -98,14 +98,19 @@ void sem_post(sem_t sem)
     struct sem *obj;
     obj = (struct sem *)sem;
     sched_lock();
-    if(!object_wake_one((struct object *)obj))
+    if(object_wake_one((struct object *)obj))
+    {
+        sched_unlock();
+        sched_preempt();
+    }
+    else
     {
         if(obj->value < obj->limit)
         {
             obj->value++;
         }
+        sched_unlock();
     }
-    sched_unlock();
 }
 
 uint32_t sem_getvalue(sem_t sem)

@@ -126,6 +126,6 @@ void tasklet_schedule(tasklet_t tasklet)
         list_append(&m_tasklet_list, node);
         sched_tcb_isr->state &= ~TCB_STATE_SUSPEND;
     }
-    sched_preempt();
     cpu_irq_enable();
+    sched_preempt();
 }

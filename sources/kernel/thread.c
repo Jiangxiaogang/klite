@@ -108,6 +108,14 @@ uint32_t thread_time(thread_t thread)
     return tcb->time;
 }
 
+void thread_yield(void)
+{
+    sched_lock();
+    sched_tcb_ready(sched_tcb_now);
+    sched_unlock();
+    sched_switch();
+}
+
 void thread_sleep(uint32_t time)
 {
     if(time != 0)

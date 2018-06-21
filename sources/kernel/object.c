@@ -33,14 +33,14 @@ void object_wait(struct object *obj, struct tcb *tcb)
 {
     tcb->state = TCB_STATE_WAIT;
     tcb->lwait = (struct tcb_list *)obj;
-    list_append(obj, tcb->nwait);
+    sched_tcb_insert((struct tcb_list *)obj, tcb->nwait);
 }
 
 void object_wait_timeout(struct object *obj, struct tcb *tcb, uint32_t timeout)
 {
     tcb->state = TCB_STATE_TIMEDWAIT;
     tcb->lwait = (struct tcb_list *)obj;
-    list_append(obj, tcb->nwait);
+    sched_tcb_insert((struct tcb_list *)obj, tcb->nwait);
     sched_tcb_sleep(tcb, timeout);
 }
 

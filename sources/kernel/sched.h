@@ -80,5 +80,6 @@ void sched_tcb_sleep(struct tcb *tcb, uint32_t timeout);
 void sched_tcb_ready(struct tcb *tcb);
 void sched_tcb_suspend(struct tcb *tcb);
 void sched_tcb_resume(struct tcb *tcb);
+void sched_tcb_insert(struct tcb_list *list, struct tcb_node *node);
 
 #endif

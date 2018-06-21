@@ -104,15 +104,17 @@ void event_set(event_t event)
     struct event *obj;
     obj = (struct event *)event;
     sched_lock();
-    obj->state = true;
     if(object_wake_all((struct object *)obj))
     {
-        if(!obj->manual)
-        {
-            obj->state = false;
-        }
+        obj->state = obj->manual;
+        sched_unlock();
+        sched_preempt();
     }
-    sched_unlock();
+    else
+    {
+        obj->state = true;
+        sched_unlock();
+    }
 }
 
 void event_reset(event_t event)
