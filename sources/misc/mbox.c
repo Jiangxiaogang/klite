@@ -54,7 +54,7 @@ void mbox_wait(mbox_t mbox, uint32_t *pdata)
     *pdata = obj->data;
 }
 
-bool mbox_timedwait(mbox_t mbox, uint32_t timeout, uint32_t *pdata)
+bool mbox_timedwait(mbox_t mbox, uint32_t *pdata, uint32_t timeout)
 {
     bool ret;
     struct mbox_object *obj;

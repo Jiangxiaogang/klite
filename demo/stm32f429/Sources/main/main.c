@@ -8,13 +8,28 @@
 #include "log.h"
 #include "gpio.h"
 #include "timer.h"
+#include "mbox.h"
 
 static timer_t m_timer;
+static event_t m_event;
+static mbox_t  m_mbox;
 
 //定时器处理函数
 static void timer_handler(void *arg)
 {
 	LOG("I am timer handler(time=%u, arg=0x%p)\r\n", kernel_time(), arg);
+}
+
+static void demo1_thread(void *arg)
+{
+    bool ret;
+    uint32_t data;
+    LOG("demo1_thread: 0x%08X\r\n", thread_self());
+    while(1)
+    {
+        ret = mbox_timedwait(m_mbox, 2000, &data);
+        LOG("demo1_thread: timedwait = %s\r\n", ret ? "true" : "false");
+    }
 }
 
 //LED闪烁线程1
@@ -35,13 +50,17 @@ static void blink_thread1(void *arg)
 static void blink_thread2(void *arg)
 {
 	LOG("blink_thread2: 0x%08X\r\n", thread_self());
-	gpio_open(PC, 11, GPIO_MODE_OUT, GPIO_OUT_PP);
+    thread_setprio(thread_self(), -1);
+	gpio_open(PG, 11, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
-		gpio_write(PC, 11, 1);
+		gpio_write(PG, 11, 1);
 		thread_sleep(500);
-		gpio_write(PC, 11, 0);
+		gpio_write(PG, 11, 0);
 		thread_sleep(500);
+        mbox_post(m_mbox, 1);
+        LOG("blink_thread2: posted\r\n");
+        event_set(m_event);
 	}
 }
 
@@ -77,6 +96,10 @@ void bsp_init(void)
 	gpio_init(PA);
 	gpio_init(PB);
 	gpio_init(PC);
+    gpio_init(PD);
+    gpio_init(PE);
+    gpio_init(PF);
+    gpio_init(PG);
 }
 
 void app_init(void)
@@ -84,8 +107,11 @@ void app_init(void)
 	log_init();
     timer_init(1024, 0);
     m_timer = timer_create();
-    timer_start(m_timer, 1000, timer_handler, 0);
+    m_event = event_create(0, 0);
+    m_mbox  = mbox_create();
+    timer_start(m_timer, 5000, timer_handler, 0);
 	thread_create(usage_thread, 0, 0);
+    thread_create(demo1_thread, 0, 0);
 	thread_create(blink_thread1, 0, 0);
     thread_create(blink_thread2, 0, 0);
 }
