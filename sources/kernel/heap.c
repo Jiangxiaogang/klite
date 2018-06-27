@@ -42,6 +42,7 @@ struct heap_mutex
 
 struct heap_node
 {
+	struct heap_node *prev;
     struct heap_node *next;
     uint32_t used;
 };
@@ -80,7 +81,7 @@ static void heap_unlock(void)
     }
 }
 
-static struct heap_node *find_next_free(struct heap_node *node)
+static struct heap_node * find_next_free(struct heap_node *node)
 {
     uint32_t free;
     for(; node->next!=NULL; node=node->next)
@@ -100,12 +101,14 @@ void heap_init(uint32_t addr, uint32_t size)
     uint32_t end;
     
     start = MEM_ALIGN_PAD(addr);
-    end   = MEM_ALIGN_CUT(start + size);
+    end   = MEM_ALIGN_CUT(addr + size);
     m_heap_size = end - start;
     m_heap_head = (struct heap_node *)start;
     m_heap_head->used = sizeof(struct heap_node) + sizeof(struct heap_mutex);
+	m_heap_head->prev = NULL;
     m_heap_head->next = (struct heap_node *)(end - sizeof(struct heap_node));
     m_heap_head->next->used = sizeof(struct heap_node);
+	m_heap_head->next->prev = m_heap_head;
     m_heap_head->next->next = NULL;
     m_heap_free = m_heap_head;
     
@@ -117,61 +120,47 @@ void heap_init(uint32_t addr, uint32_t size)
 
 void *heap_alloc(uint32_t size)
 {
-    void *mem;
     uint32_t free;
     uint32_t need;
     struct heap_node *temp;
     struct heap_node *node;
     
-    mem  = NULL;
-    size = MEM_ALIGN_PAD(size);
     need = size + sizeof(struct heap_node);
-
+	need = MEM_ALIGN_PAD(need);
     heap_lock();
-    for(node=m_heap_free; node->next!=NULL; node=node->next)
+    for(node = m_heap_free; node->next != NULL; node = node->next)
     {
         free = ((uint32_t)node->next) - ((uint32_t)node) - node->used;
         if(free >= need)
         {
             temp = (struct heap_node *)((uint32_t)node + node->used);
+			temp->prev = node;
             temp->next = node->next;
             temp->used = need;
+			node->next->prev = temp;
             node->next = temp;
             if(node == m_heap_free)
             {
                 m_heap_free = find_next_free(m_heap_free);
             }
-            mem = (void *)((uint32_t)(temp + 1));
-            break;
+			heap_unlock();
+            return (void *)(temp + 1);
         }
     }
     heap_unlock();
-    return mem;
+    return NULL;
 }
 
 void heap_free(void *mem)
 {
     struct heap_node *node;
-    struct heap_node *prev;
-    struct heap_node *find;
-    
-    prev = m_heap_head;
-    find = ((struct heap_node *)mem) - 1;
-
+    node = (struct heap_node *)mem - 1;
     heap_lock();
-    for(node=m_heap_head->next; node->next!=NULL; node=node->next)
-    {
-        if(node == find)
-        {
-            prev->next = node->next;
-            if(prev < m_heap_free)
-            {
-                m_heap_free = prev;
-            }
-            break;
-        }
-        prev = node;
-    }
+	node->prev->next = node->next;
+	if(node->prev < m_heap_free)
+	{
+		m_heap_free = node->prev;
+	}
     heap_unlock();
 }
 

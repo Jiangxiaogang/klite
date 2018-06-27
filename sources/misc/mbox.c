@@ -40,8 +40,8 @@ void mbox_delete(mbox_t mbox)
 
 void mbox_post(mbox_t mbox, uint32_t data)
 {
-    struct mbox_object* obj;
-    obj = (struct mbox_object*)mbox;
+    struct mbox_object *obj;
+    obj = (struct mbox_object *)mbox;
     obj->data = data;
     event_set(obj->event);
 }

@@ -101,7 +101,7 @@ int main(void)
 {
 	static uint8_t heap[8*1024];
 	kernel_init((uint32_t)heap, 8*1024);
-    tasklet_init(1024); //tasklet必须初始化才能使用
+    //tasklet_init(1024); //tasklet必须初始化才能使用
 	thread_create(init, 0, 0);
 	kernel_start();
 }
