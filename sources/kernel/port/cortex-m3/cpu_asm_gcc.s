@@ -24,39 +24,32 @@
 ;* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;* SOFTWARE.
 ;******************************************************************************/
-    .syntax unified
+.syntax unified
+.text
+.thumb
+
+.equ TCB_OFFSET_SP,    0x00
+.equ TCB_OFFSET_STATE, 0x20
+
+.extern sched_tcb_now
+.extern sched_tcb_new
+
+.global cpu_irq_enable
+.global cpu_irq_disable
+.global PendSV_Handler
     
-    .equ TCB_OFFSET_SP,    0x00
-    .equ TCB_OFFSET_STATE, 0x20
-    
-    .extern sched_tcb_now
-    .extern sched_tcb_new
-    
-    .global cpu_irq_enable
-    .global cpu_irq_disable
-    .global PendSV_Handler
-    
-    .thumb
-    .section ".text"
-    .align  4
-    
+.thumb_func
 cpu_irq_enable:
-    .fnstart
-    .cantunwind
     CPSIE   I
     BX      LR
-    .fnend
-    
+
+.thumb_func
 cpu_irq_disable:
-    .fnstart
-    .cantunwind
     CPSID   I
     BX      LR
-    .fnend
 
+.thumb_func
 PendSV_Handler:
-    .fnstart
-    .cantunwind
     CPSID   I
     LDR     R0, =sched_tcb_now
     LDR     R1, [R0]
@@ -74,7 +67,3 @@ POPSTACK:
     POP     {R4-R11}
     CPSIE   I
     BX      LR
-    .fnend
-    
-    .end
-    

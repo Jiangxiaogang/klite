@@ -1,10 +1,9 @@
 # KLite makefile
 # jiangxiaogang<kerndev@foxmail.com>
 # 2017.6.14
-
-CC := /g/GNU/MINGW/gcc-arm-none-eabi/bin/arm-none-eabi-gcc.exe
-AR := /g/GNU/MINGW/gcc-arm-none-eabi/bin/arm-none-eabi-ar.exe
-CFLAGS :=-W -O0
+CC := /opt/arm/bin/arm-none-eabi-gcc
+AR := /opt/arm/bin/arm-none-eabi-ar
+CFLAGS :=-W -O0  -fshort-wchar
 
 SRCPATH:= ../../sources/kernel
 SRCDIRS:= $(SRCPATH)
