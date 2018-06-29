@@ -51,7 +51,7 @@
           <OutputName>demo</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
+          <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>0</BrowseInformation>
           <ListingPath>.\Listings\</ListingPath>
@@ -316,13 +316,13 @@
             <OneElfS>1</OneElfS>
             <Strict>0</Strict>
             <EnumInt>0</EnumInt>
-            <PlainCh>0</PlainCh>
+            <PlainCh>1</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
             <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
+            <uC99>1</uC99>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
             <v6LangP>1</v6LangP>
@@ -441,6 +441,11 @@
               <FilePath>..\..\sources\kernel\event.c</FilePath>
             </File>
             <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
               <FileName>kernel.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\kernel.c</FilePath>
@@ -449,6 +454,11 @@
               <FileName>mutex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+            </File>
+            <File>
+              <FileName>object.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\object.c</FilePath>
             </File>
             <File>
               <FileName>sched.c</FileName>
@@ -461,24 +471,14 @@
               <FilePath>..\..\sources\kernel\sem.c</FilePath>
             </File>
             <File>
-              <FileName>thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\thread.c</FilePath>
-            </File>
-            <File>
-              <FileName>heap.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\heap.c</FilePath>
-            </File>
-            <File>
               <FileName>tasklet.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
             </File>
             <File>
-              <FileName>object.c</FileName>
+              <FileName>thread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\object.c</FilePath>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
             </File>
           </Files>
         </Group>

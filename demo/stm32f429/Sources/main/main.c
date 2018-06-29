@@ -27,7 +27,7 @@ static void demo1_thread(void *arg)
     LOG("demo1_thread: 0x%08X\r\n", thread_self());
     while(1)
     {
-        ret = mbox_timedwait(m_mbox, 2000, &data);
+        ret = mbox_timedwait(m_mbox, &data, 2000);
         LOG("demo1_thread: timedwait = %s\r\n", ret ? "true" : "false");
     }
 }
@@ -131,3 +131,4 @@ int main(void)
 	thread_create(init, 0, 0);
 	kernel_start();
 }
+
