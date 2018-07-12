@@ -5,62 +5,65 @@
 #include <stdio.h>
 #include <string.h>
 #include "kernel.h"
+#include "timer.h"
 #include "log.h"
 #include "gpio.h"
-#include "timer.h"
-#include "mbox.h"
 
 static timer_t m_timer;
 static event_t m_event;
-static mbox_t  m_mbox;
+static sem_t   m_semaphore;
 
 //定时器处理函数
 static void timer_handler(void *arg)
 {
-	LOG("I am timer handler(time=%u, arg=0x%p)\r\n", kernel_time(), arg);
+	LOG("I am timer handler, time=%u, arg=0x%p.\r\n", kernel_time(), arg);
 }
 
+//演示线程
+//每2秒发一次信号
 static void demo1_thread(void *arg)
 {
-    bool ret;
-    uint32_t data;
     LOG("demo1_thread: 0x%08X\r\n", thread_self());
     while(1)
     {
-        ret = mbox_timedwait(m_mbox, &data, 2000);
-        LOG("demo1_thread: timedwait = %s\r\n", ret ? "true" : "false");
+        sleep(2000);
+        event_post(m_event);
+        sem_post(m_semaphore);
+        LOG("demo1_thread wake up at %u\r\n", kernel_time());
     }
 }
 
 //LED闪烁线程1
+//每闪烁一次LED灯，等待一次信号
 static void blink_thread1(void *arg)
 {
 	LOG("blink_thread1: 0x%08X\r\n", thread_self());
 	gpio_open(PC, 10, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
+        sleep(250);
 		gpio_write(PC, 10, 1);
-		thread_sleep(200);
+        sleep(250);
 		gpio_write(PC, 10, 0);
-		thread_sleep(200);
+        event_wait(m_event);
+        LOG("blink_thread1 wake up at %u\r\n", kernel_time());
 	}
 }
 
 //LED闪烁线程2
+//每闪烁一次LED灯，等待一次信号
 static void blink_thread2(void *arg)
 {
 	LOG("blink_thread2: 0x%08X\r\n", thread_self());
-    thread_setprio(thread_self(), -1);
 	gpio_open(PG, 11, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
+        sleep(500);
 		gpio_write(PG, 11, 1);
-		thread_sleep(500);
+		sleep(500);
 		gpio_write(PG, 11, 0);
-		thread_sleep(500);
-        mbox_post(m_mbox, 1);
-        LOG("blink_thread2: posted\r\n");
-        event_set(m_event);
+        sem_wait(m_semaphore);
+        LOG("blink_thread2 wake up at %u\r\n", kernel_time());
 	}
 }
 
@@ -108,12 +111,12 @@ void app_init(void)
     timer_init(1024, 0);
     m_timer = timer_create();
     m_event = event_create(0, 0);
-    m_mbox  = mbox_create();
+    m_semaphore  = sem_create(0, 10);
     timer_start(m_timer, 5000, timer_handler, 0);
-	thread_create(usage_thread, 0, 0);
-    thread_create(demo1_thread, 0, 0);
-	thread_create(blink_thread1, 0, 0);
-    thread_create(blink_thread2, 0, 0);
+	thread_create(usage_thread, 0, 384);
+    thread_create(demo1_thread, 0, 384);
+	thread_create(blink_thread1, 0, 384);
+    thread_create(blink_thread2, 0, 384);
 }
 
 //初始化线程
@@ -127,8 +130,7 @@ int main(void)
 {
 	static uint8_t heap[8*1024];
 	kernel_init((uint32_t)heap, 8*1024);
-    //tasklet_init(1024); //tasklet必须初始化才能使用
+    //tasklet_init(1024); //tasklet初始化
 	thread_create(init, 0, 0);
 	kernel_start();
 }
-
