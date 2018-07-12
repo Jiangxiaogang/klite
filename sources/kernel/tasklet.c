@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
+#include "scheduler.h"
 #include "list.h"
 #include "port.h"
 

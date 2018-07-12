@@ -25,8 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
-#include "object.h"
+#include "scheduler.h"
 
 struct event
 {
@@ -38,16 +37,16 @@ struct event
 
 event_t event_create(bool state, bool manual)
 {
-    struct event *obj;
-    obj = heap_alloc(sizeof(struct event));
-    if(obj != NULL)
+    struct event *p_event;
+    p_event = heap_alloc(sizeof(struct event));
+    if(p_event != NULL)
     {
-        obj->head   = NULL;
-        obj->tail   = NULL;
-        obj->state  = state;
-        obj->manual = manual;
+        p_event->head   = NULL;
+        p_event->tail   = NULL;
+        p_event->state  = state;
+        p_event->manual = manual;
     }
-    return (event_t)obj;
+    return (event_t)p_event;
 }
 
 void event_delete(event_t event)
@@ -57,33 +56,33 @@ void event_delete(event_t event)
 
 void event_wait(event_t event)
 {
-    struct event *obj;
-    obj = (struct event *)event;
+    struct event *p_event;
+    p_event = (struct event *)event;
     sched_lock();
-    if(obj->state)
+    if(p_event->state)
     {
-        if(!obj->manual)
+        if(!p_event->manual)
         {
-            obj->state = false;
+            p_event->state = false;
         }
         sched_unlock();
         return;
     }
-    object_wait((struct object *)obj, sched_tcb_now);
+    sched_tcb_wait(sched_tcb_now, (struct tcb_list *)p_event);
     sched_unlock();
     sched_switch();
 }
 
 bool event_timedwait(event_t event, uint32_t timeout)
 {
-    struct event *obj;
-    obj = (struct event *)event;
+    struct event *p_event;
+    p_event = (struct event *)event;
     sched_lock();
-    if(obj->state)
+    if(p_event->state)
     {
-        if(!obj->manual)
+        if(!p_event->manual)
         {
-            obj->state = false;
+            p_event->state = false;
         }
         sched_unlock();
         return true;
@@ -93,35 +92,35 @@ bool event_timedwait(event_t event, uint32_t timeout)
         sched_unlock();
         return false;
     }
-    object_wait_timeout((struct object *)obj, sched_tcb_now, timeout);
+    sched_tcb_timedwait(sched_tcb_now, (struct tcb_list *)p_event, timeout);
     sched_unlock();
     sched_switch();
     return (sched_tcb_now->timeout != 0);
 }
 
-void event_set(event_t event)
+void event_post(event_t event)
 {
-    struct event *obj;
-    obj = (struct event *)event;
+    struct event *p_event;
+    p_event = (struct event *)event;
     sched_lock();
-    if(object_wake_all((struct object *)obj))
+    if(sched_tcb_wake_all((struct tcb_list *)p_event))
     {
-        obj->state = obj->manual;
+        p_event->state = p_event->manual;
         sched_unlock();
         sched_preempt();
     }
     else
     {
-        obj->state = true;
+        p_event->state = true;
         sched_unlock();
     }
 }
 
-void event_reset(event_t event)
+void event_clear(event_t event)
 {
-    struct event *obj;
-    obj = (struct event *)event;
+    struct event *p_event;
+    p_event = (struct event *)event;
     sched_lock();
-    obj->state = false;
+    p_event->state = false;
     sched_unlock();
 }

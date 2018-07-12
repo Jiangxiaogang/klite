@@ -85,8 +85,8 @@ void     mutex_unlock(mutex_t mutex);
 ******************************************************************************/
 event_t  event_create(bool state, bool manual);
 void     event_delete(event_t event);
-void     event_set(event_t event);
-void     event_reset(event_t event);
+void     event_clear(event_t event);
+void     event_post(event_t event);
 void     event_wait(event_t event);
 bool     event_timedwait(event_t event, uint32_t timeout);
 
@@ -95,6 +95,7 @@ bool     event_timedwait(event_t event, uint32_t timeout);
 ******************************************************************************/
 sem_t    sem_create(uint32_t init_value, uint32_t max_value);
 void     sem_delete(sem_t sem);
+void     sem_clear(sem_t sem);
 void     sem_post(sem_t sem);
 void     sem_wait(sem_t sem);
 bool     sem_timedwait(sem_t sem, uint32_t timeout);
@@ -111,8 +112,10 @@ void      tasklet_schedule(tasklet_t tasklet);
 /******************************************************************************
 * alias
 ******************************************************************************/
-#define  malloc heap_alloc
-#define  free   heap_free
-#define  sleep  thread_sleep
+#define malloc       heap_alloc
+#define free         heap_free
+#define sleep        thread_sleep
+#define event_set    event_post
+#define event_reset  event_clear
 
 #endif

@@ -25,10 +25,9 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
-#include "object.h"
+#include "scheduler.h"
 
-struct sem
+struct semaphore
 {
     struct tcb_node *head;
     struct tcb_node *tail;
@@ -38,16 +37,16 @@ struct sem
 
 sem_t sem_create(uint32_t init_value, uint32_t max_value)
 {
-    struct sem *obj;
-    obj = heap_alloc(sizeof(struct sem));
-    if(obj != NULL)
+    struct semaphore *p_sem;
+    p_sem = heap_alloc(sizeof(struct semaphore));
+    if(p_sem != NULL)
     {
-        obj->head  = NULL;
-        obj->tail  = NULL;
-        obj->value = init_value;
-        obj->limit = max_value;
+        p_sem->head  = NULL;
+        p_sem->tail  = NULL;
+        p_sem->value = init_value;
+        p_sem->limit = max_value;
     }
-    return (sem_t)obj;
+    return (sem_t)p_sem;
 }
 
 void sem_delete(sem_t sem)
@@ -57,28 +56,28 @@ void sem_delete(sem_t sem)
 
 void sem_wait(sem_t sem)
 {
-    struct sem *obj;
-    obj = (struct sem *)sem;
+    struct semaphore *p_sem;
+    p_sem = (struct semaphore *)sem;
     sched_lock();
-    if(obj->value != 0)
+    if(p_sem->value != 0)
     {
-        obj->value--;
+        p_sem->value--;
         sched_unlock();
         return;
     }
-    object_wait((struct object *)obj, sched_tcb_now);
+    sched_tcb_wait(sched_tcb_now, (struct tcb_list *)p_sem);
     sched_unlock();
     sched_switch();
 }
 
 bool sem_timedwait(sem_t sem, uint32_t timeout)
 {
-    struct sem *obj;
-    obj = (struct sem *)sem;
+    struct semaphore *p_sem;
+    p_sem = (struct semaphore *)sem;
     sched_lock();
-    if(obj->value != 0)
+    if(p_sem->value != 0)
     {
-        obj->value--;
+        p_sem->value--;
         sched_unlock();
         return true;
     }
@@ -87,7 +86,7 @@ bool sem_timedwait(sem_t sem, uint32_t timeout)
         sched_unlock();
         return false;
     }
-    object_wait_timeout((struct object *)obj, sched_tcb_now, timeout);
+    sched_tcb_timedwait(sched_tcb_now, (struct tcb_list *)p_sem, timeout);
     sched_unlock();
     sched_switch();
     return (sched_tcb_now->timeout != 0);
@@ -95,27 +94,36 @@ bool sem_timedwait(sem_t sem, uint32_t timeout)
 
 void sem_post(sem_t sem)
 {
-    struct sem *obj;
-    obj = (struct sem *)sem;
+    struct semaphore *p_sem;
+    p_sem = (struct semaphore *)sem;
     sched_lock();
-    if(object_wake_one((struct object *)obj))
+    if(sched_tcb_wake_one((struct tcb_list *)p_sem))
     {
         sched_unlock();
         sched_preempt();
     }
     else
     {
-        if(obj->value < obj->limit)
+        if(p_sem->value < p_sem->limit)
         {
-            obj->value++;
+            p_sem->value++;
         }
         sched_unlock();
     }
 }
 
+void sem_clear(sem_t sem)
+{
+    struct semaphore *p_sem;
+    p_sem = (struct semaphore *)sem;
+    sched_lock();
+    p_sem->value = 0;
+    sched_unlock();
+}
+
 uint32_t sem_getvalue(sem_t sem)
 {
-    struct sem *obj;
-    obj = (struct sem *)sem;
-    return obj->value;
+    struct semaphore *p_sem;
+    p_sem = (struct semaphore *)sem;
+    return p_sem->value;
 }

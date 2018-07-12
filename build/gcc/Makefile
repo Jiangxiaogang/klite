@@ -1,8 +1,8 @@
 # KLite makefile
 # jiangxiaogang<kerndev@foxmail.com>
 # 2017.6.14
-CC := /opt/arm/bin/arm-none-eabi-gcc
-AR := /opt/arm/bin/arm-none-eabi-ar
+CC := /mingw32/arm/bin/arm-none-eabi-gcc
+AR := /mingw32/arm/bin/arm-none-eabi-ar
 CFLAGS :=-W -O0  -fshort-wchar
 
 SRCPATH:= ../../sources/kernel

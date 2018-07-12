@@ -25,8 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
-#include "object.h"
+#include "scheduler.h"
 
 #define MEM_ALIGN_BYTE      (4)
 #define MEM_ALIGN_MASK      (MEM_ALIGN_BYTE - 1)
@@ -42,7 +41,7 @@ struct heap_mutex
 
 struct heap_node
 {
-	struct heap_node *prev;
+    struct heap_node *prev;
     struct heap_node *next;
     uint32_t used;
 };
@@ -61,7 +60,7 @@ static void heap_lock(void)
         sched_unlock();
         return;
     }
-    object_wait((struct object *)m_heap_mutex, sched_tcb_now);
+    sched_tcb_wait(sched_tcb_now, (struct tcb_list *)m_heap_mutex);
     sched_unlock();
     sched_switch();
 }
@@ -69,7 +68,7 @@ static void heap_lock(void)
 static void heap_unlock(void)
 {
     sched_lock();
-    if(object_wake_one((struct object *)m_heap_mutex))
+    if(sched_tcb_wake_one((struct tcb_list *)m_heap_mutex))
     {
         sched_unlock();
         sched_preempt();
@@ -105,10 +104,10 @@ void heap_init(uint32_t addr, uint32_t size)
     m_heap_size = end - start;
     m_heap_head = (struct heap_node *)start;
     m_heap_head->used = sizeof(struct heap_node) + sizeof(struct heap_mutex);
-	m_heap_head->prev = NULL;
+    m_heap_head->prev = NULL;
     m_heap_head->next = (struct heap_node *)(end - sizeof(struct heap_node));
     m_heap_head->next->used = sizeof(struct heap_node);
-	m_heap_head->next->prev = m_heap_head;
+    m_heap_head->next->prev = m_heap_head;
     m_heap_head->next->next = NULL;
     m_heap_free = m_heap_head;
     
@@ -126,7 +125,7 @@ void *heap_alloc(uint32_t size)
     struct heap_node *node;
     
     need = size + sizeof(struct heap_node);
-	need = MEM_ALIGN_PAD(need);
+    need = MEM_ALIGN_PAD(need);
     heap_lock();
     for(node = m_heap_free; node->next != NULL; node = node->next)
     {
@@ -134,16 +133,16 @@ void *heap_alloc(uint32_t size)
         if(free >= need)
         {
             temp = (struct heap_node *)((uint32_t)node + node->used);
-			temp->prev = node;
+            temp->prev = node;
             temp->next = node->next;
             temp->used = need;
-			node->next->prev = temp;
+            node->next->prev = temp;
             node->next = temp;
             if(node == m_heap_free)
             {
                 m_heap_free = find_next_free(m_heap_free);
             }
-			heap_unlock();
+            heap_unlock();
             return (void *)(temp + 1);
         }
     }
@@ -156,21 +155,20 @@ void heap_free(void *mem)
     struct heap_node *node;
     node = (struct heap_node *)mem - 1;
     heap_lock();
-	node->prev->next = node->next;
-	if(node->prev < m_heap_free)
-	{
-		m_heap_free = node->prev;
-	}
+    node->prev->next = node->next;
+    if(node->prev < m_heap_free)
+    {
+        m_heap_free = node->prev;
+    }
     heap_unlock();
 }
 
 void heap_usage(uint32_t *total, uint32_t *used)
 {
     struct heap_node *node;
-    
+
     *used  = 0;
     *total = m_heap_size;
-    
     heap_lock();
     for(node=m_heap_head; node!=NULL; node=node->next)
     {

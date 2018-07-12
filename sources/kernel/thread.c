@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
+#include "scheduler.h"
 
 #define THREAD_DEFAULT_STKSIZE  (256)
 #define THREAD_DEFAULT_PRIORITY (0)
@@ -43,7 +43,7 @@ thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
         node = (struct tcb_node *)(tcb + 1);
         tcb->nwait  = node++;
         tcb->nsched = node++;
-        tcb->sp_min = (uint32_t)node;
+        tcb->sp_min = (uintptr_t)node;
         tcb->sp_max = tcb->sp_min + stack_size;
         tcb->entry  = entry;
         tcb->arg    = arg;
@@ -108,14 +108,6 @@ uint32_t thread_time(thread_t thread)
     return tcb->time;
 }
 
-void thread_yield(void)
-{
-    sched_lock();
-    sched_tcb_ready(sched_tcb_now);
-    sched_unlock();
-    sched_switch();
-}
-
 void thread_sleep(uint32_t time)
 {
     if(time != 0)
@@ -125,6 +117,14 @@ void thread_sleep(uint32_t time)
         sched_unlock();
         sched_switch();
     }
+}
+
+void thread_yield(void)
+{
+    sched_lock();
+    sched_tcb_ready(sched_tcb_now);
+    sched_unlock();
+    sched_switch();
 }
 
 void thread_exit(void)

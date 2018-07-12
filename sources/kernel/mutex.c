@@ -25,8 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
-#include "object.h"
+#include "scheduler.h"
 
 struct mutex
 {
@@ -37,15 +36,15 @@ struct mutex
 
 mutex_t mutex_create(void)
 {
-    struct mutex *obj;
-    obj = heap_alloc(sizeof(struct mutex));
-    if(obj != NULL)
+    struct mutex *p_mutex;
+    p_mutex = heap_alloc(sizeof(struct mutex));
+    if(p_mutex != NULL)
     {
-        obj->head = NULL;
-        obj->tail = NULL;
-        obj->lock = false;
+        p_mutex->head = NULL;
+        p_mutex->tail = NULL;
+        p_mutex->lock = false;
     }
-    return (mutex_t)obj;
+    return (mutex_t)p_mutex;
 }
 
 void mutex_delete(mutex_t mutex)
@@ -55,33 +54,33 @@ void mutex_delete(mutex_t mutex)
 
 void mutex_lock(mutex_t mutex)
 {
-    struct mutex *obj;
-    obj = (struct mutex *)mutex;
+    struct mutex *p_mutex;
+    p_mutex = (struct mutex *)mutex;
     sched_lock();
-    if(obj->lock == false)
+    if(p_mutex->lock == false)
     {
-        obj->lock = true;
+        p_mutex->lock = true;
         sched_unlock();
         return;
     }
-    object_wait((struct object *)obj, sched_tcb_now);
+    sched_tcb_wait(sched_tcb_now, (struct tcb_list *)p_mutex);
     sched_unlock();
     sched_switch();
 }
 
 void mutex_unlock(mutex_t mutex)
 {
-    struct mutex *obj;
-    obj = (struct mutex *)mutex;
+    struct mutex *p_mutex;
+    p_mutex = (struct mutex *)mutex;
     sched_lock();
-    if(object_wake_one((struct object *)obj))
+    if(sched_tcb_wake_one((struct tcb_list *)p_mutex))
     {
         sched_unlock();
         sched_preempt();
     }
     else
     {
-        obj->lock = false;
+        p_mutex->lock = false;
         sched_unlock();
     }
 }

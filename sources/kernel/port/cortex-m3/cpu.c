@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
+#include "scheduler.h"
 
 #define NVIC_INT_CTRL (*((volatile uint32_t *)0xE000ED04))
 #define PEND_INT_SET  (1<<28)
@@ -52,7 +52,7 @@ void cpu_tcb_init(struct tcb *tcb)
     *(--sp) = 0;                        // R6
     *(--sp) = 0;                        // R5
     *(--sp) = 0;                        // R4
-    tcb->sp = (uint32_t)sp;
+    tcb->sp = (uintptr_t)sp;
 }
 
 void cpu_tcb_switch(void)

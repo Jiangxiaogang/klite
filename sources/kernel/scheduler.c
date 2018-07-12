@@ -25,14 +25,14 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "sched.h"
+#include "scheduler.h"
 #include "list.h"
 #include "port.h"
 
 struct tcb             *sched_tcb_now;
 struct tcb             *sched_tcb_new;
 struct tcb             *sched_tcb_isr;
-static uint32_t         sched_lock_count;
+static int              sched_lock_count;
 static struct tcb_list  sched_list_sleep;
 static struct tcb_list  sched_list_ready;
 
@@ -104,6 +104,7 @@ void sched_tcb_sleep(struct tcb *tcb, uint32_t timeout)
 
 void sched_tcb_suspend(struct tcb *tcb)
 {
+    tcb->state |= TCB_STATE_SUSPEND;
     if(tcb->lwait)
     {
         list_remove(tcb->lwait, tcb->nwait);
@@ -112,11 +113,11 @@ void sched_tcb_suspend(struct tcb *tcb)
     {
         list_remove(tcb->lsched, tcb->nsched);
     }
-    tcb->state |= TCB_STATE_SUSPEND;
 }
 
 void sched_tcb_resume(struct tcb *tcb)
 {
+    tcb->state &= ~TCB_STATE_SUSPEND;
     if(tcb->lwait)
     {
         sched_tcb_insert(tcb->lwait, tcb->nwait);
@@ -125,7 +126,54 @@ void sched_tcb_resume(struct tcb *tcb)
     {
         sched_tcb_insert(tcb->lsched, tcb->nsched);
     }
-    tcb->state &= ~TCB_STATE_SUSPEND;
+}
+
+void sched_tcb_wait(struct tcb *tcb, struct tcb_list *list)
+{
+    tcb->state = TCB_STATE_WAIT;
+    tcb->lwait = list;
+    sched_tcb_insert(list, tcb->nwait);
+}
+
+void sched_tcb_timedwait(struct tcb *tcb, struct tcb_list *list, uint32_t timeout)
+{
+    tcb->state   = TCB_STATE_TIMEDWAIT;
+    tcb->timeout = timeout;
+    tcb->lwait   = list;
+    tcb->lsched  = &sched_list_sleep;
+    sched_tcb_insert(list, tcb->nwait);
+    list_append(&sched_list_sleep, tcb->nsched);
+}
+
+bool sched_tcb_wake_one(struct tcb_list *list)
+{
+    struct tcb *tcb;
+    if(list->head)
+    {
+        tcb = list->head->tcb;
+        tcb->lwait = NULL;
+        list_remove(list, tcb->nwait);
+        sched_tcb_ready(tcb);
+        return true;
+    }
+    return false;
+}
+
+bool sched_tcb_wake_all(struct tcb_list *list)
+{
+    struct tcb *tcb;
+    if(list->head)
+    {
+        while(list->head)
+        {
+            tcb = list->head->tcb;
+            tcb->lwait = NULL;
+            list_remove(list, tcb->nwait);
+            sched_tcb_ready(tcb);
+        }
+        return true;
+    }
+    return false;
 }
 
 void sched_timetick(uint32_t time)
