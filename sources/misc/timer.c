@@ -109,7 +109,7 @@ void timer_start(timer_t timer, uint32_t timeout, void (*handler)(void *), void 
     mutex_lock(m_timer_list.mutex);
     list_append(&m_timer_list, node);
     mutex_unlock(m_timer_list.mutex);
-    event_set(m_timer_list.event);
+    event_post(m_timer_list.event);
 }
 
 //停止定时器
@@ -120,7 +120,7 @@ void timer_stop(timer_t timer)
     mutex_lock(m_timer_list.mutex);
     list_remove(&m_timer_list, node);
     mutex_unlock(m_timer_list.mutex);
-    event_set(m_timer_list.event);
+    event_post(m_timer_list.event);
 }
 
 //初始化定时器模块
@@ -130,7 +130,7 @@ void timer_init(uint32_t stk_size, int prio)
     thread_t thread;
     list_init(&m_timer_list);
     m_timer_list.mutex = mutex_create();
-    m_timer_list.event = event_create(false, false);
+    m_timer_list.event = event_create(false);
     thread = thread_create(timer_thread_entry, 0, stk_size);
     thread_setprio(thread, prio);
 }

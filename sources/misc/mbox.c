@@ -20,7 +20,7 @@ mbox_t mbox_create(void)
     if(obj != NULL)
     {
         obj->data = 0;
-        obj->event= event_create(false, false);
+        obj->event= event_create(false);
         if(obj->event)
         {
             return obj;
@@ -43,7 +43,7 @@ void mbox_post(mbox_t mbox, uint32_t data)
     struct mbox_object *obj;
     obj = (struct mbox_object *)mbox;
     obj->data = data;
-    event_set(obj->event);
+    event_post(obj->event);
 }
 
 void mbox_wait(mbox_t mbox, uint32_t *pdata)
