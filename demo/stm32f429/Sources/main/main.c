@@ -1,5 +1,5 @@
 /*
-* KLite示例工程
+* KLite测试工程
 */
 #include <stdarg.h>
 #include <stdio.h>
@@ -15,6 +15,7 @@ static event_t  m_event;
 static thread_t m_idle;
 static sem_t    m_sem;
 
+//获取系统空闲时长(现已从内核API中移除，所以自己实现)
 uint32_t kernel_idletime(void)
 {
     return thread_time(m_idle);
@@ -27,7 +28,7 @@ static void timer_handler(void *arg)
 }
 
 //演示线程
-//每2秒发一次信号
+//定时发送信号
 static void demo1_thread(void *arg)
 {
     LOG("demo1_thread: 0x%08X\r\n", thread_self());
