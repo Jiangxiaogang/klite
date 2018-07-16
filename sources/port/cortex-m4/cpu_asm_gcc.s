@@ -28,9 +28,6 @@
 .text
 .thumb
 
-.equ TCB_OFFSET_SP,    0x00
-.equ TCB_OFFSET_STATE, 0x20
-
 .extern sched_tcb_now
 .extern sched_tcb_new
 
@@ -59,15 +56,13 @@ PendSV_Handler:
     VPUSHEQ {S16-S31}
     PUSH    {LR}
     PUSH    {R4-R11}
-    STR     SP, [R1,#TCB_OFFSET_SP]
+    STR     SP, [R1]
 
 POPSTACK:
     LDR     R2, =sched_tcb_new
     LDR     R3, [R2]
     STR     R3, [R0]
-    MOV     R1, #0
-    STR     R1, [R3,#TCB_OFFSET_STATE]
-    LDR     SP, [R3,#TCB_OFFSET_SP]
+    LDR     SP, [R3]
     POP     {R4-R11}
     POP     {LR}
     TST     LR, #0x10
