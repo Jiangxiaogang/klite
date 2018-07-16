@@ -9,9 +9,14 @@
 #include "log.h"
 #include "gpio.h"
 
-static timer_t m_timer;
-static event_t m_event;
-static sem_t   m_semaphore;
+static timer_t  m_timer;
+static event_t  m_event;
+static thread_t m_idle;
+
+uint32_t kernel_idletime(void)
+{
+    return thread_time(m_idle);
+}
 
 //定时器处理函数
 static void timer_handler(void *arg)
@@ -28,7 +33,6 @@ static void demo1_thread(void *arg)
     {
         sleep(2000);
         event_post(m_event);
-        sem_post(m_semaphore);
         LOG("demo1_thread wake up at %u\r\n", kernel_time());
     }
 }
@@ -62,7 +66,6 @@ static void blink_thread2(void *arg)
 		gpio_write(PG, 11, 1);
 		sleep(500);
 		gpio_write(PG, 11, 0);
-        sem_wait(m_semaphore);
         LOG("blink_thread2 wake up at %u\r\n", kernel_time());
 	}
 }
@@ -108,11 +111,8 @@ void bsp_init(void)
 void app_init(void)
 {
 	log_init();
-    timer_init(1024, 0);
-    m_timer = timer_create();
-    m_event = event_create(0, 0);
-    m_semaphore  = sem_create(0, 10);
-    timer_start(m_timer, 5000, timer_handler, 0);
+    m_event = event_create(0);
+    timer_start(&m_timer, 5000, timer_handler, 0);
 	thread_create(usage_thread, 0, 384);
     thread_create(demo1_thread, 0, 384);
 	thread_create(blink_thread1, 0, 384);
@@ -126,11 +126,20 @@ void init(void *arg)
 	app_init();
 }
 
+void idle(void *arg)
+{
+    thread_setprio(thread_self(), THREAD_PRIORITY_MIN);
+    while(1);
+}
+
 int main(void)
 {
 	static uint8_t heap[8*1024];
-	kernel_init((uint32_t)heap, 8*1024);
-    //tasklet_init(1024); //tasklet初始化
-	thread_create(init, 0, 0);
-	kernel_start();
+    kernel_init();
+    heap_init((uint32_t)heap, sizeof(heap));
+    timer_init(1024, 0);
+//    //tasklet_init(1024); //tasklet初始化
+    thread_create(init, 0, 0);
+    m_idle = thread_create(idle, 0, 0);
+    kernel_start();
 }

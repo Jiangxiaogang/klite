@@ -426,6 +426,11 @@
               <FilePath>..\..\sources\misc\mpool.c</FilePath>
             </File>
             <File>
+              <FileName>semaphore.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\misc\semaphore.c</FilePath>
+            </File>
+            <File>
               <FileName>timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\misc\timer.c</FilePath>
@@ -436,9 +441,59 @@
           <GroupName>kernel</GroupName>
           <Files>
             <File>
-              <FileName>kernel-cm4.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\Sources\kernel\kernel-cm4.lib</FilePath>
+              <FileName>event.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\event.c</FilePath>
+            </File>
+            <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
+              <FileName>kernel.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\kernel.c</FilePath>
+            </File>
+            <File>
+              <FileName>mutex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\mutex.c</FilePath>
+            </File>
+            <File>
+              <FileName>sched.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\sched.c</FilePath>
+            </File>
+            <File>
+              <FileName>tasklet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
+            </File>
+            <File>
+              <FileName>thread.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>port</GroupName>
+          <Files>
+            <File>
+              <FileName>port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\port\port.c</FilePath>
+            </File>
+            <File>
+              <FileName>cpu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\port\cortex-m4\cpu.c</FilePath>
+            </File>
+            <File>
+              <FileName>cpu_asm_keil.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\sources\port\cortex-m4\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -459,16 +514,6 @@
               <FileName>STM32F429.lib</FileName>
               <FileType>4</FileType>
               <FilePath>.\Sources\cpu\lib\STM32F429.lib</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>port</GroupName>
-          <Files>
-            <File>
-              <FileName>port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Sources\kernel\port.c</FilePath>
             </File>
           </Files>
         </Group>
