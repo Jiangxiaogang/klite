@@ -89,8 +89,8 @@ void     event_delete(event_t event);
 void     event_post(event_t event);
 void     event_wait(event_t event);
 bool     event_timedwait(event_t event, uint32_t timeout);
-void     event_wakeone(event_t event);
-void     event_wakeall(event_t event);
+bool     event_wakeone(event_t event);
+bool     event_wakeall(event_t event);
 void     event_keepalive(event_t event);
 void     event_clear(event_t event);
 

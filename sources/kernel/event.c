@@ -110,24 +110,36 @@ void event_post(event_t event)
     }
 }
 
-void event_wakeone(event_t event)
+bool event_wakeone(event_t event)
 {
+    bool b;
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    sched_tcb_wakeone((struct tcb_list *)p_event);
+    b = sched_tcb_wakeone((struct tcb_list *)p_event);
     sched_unlock();
-    sched_preempt();
+    if(b)
+    {
+        sched_preempt();
+        return true;
+    }
+    return false;
 }
 
-void event_wakeall(event_t event)
+bool event_wakeall(event_t event)
 {
+    bool b;
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    sched_tcb_wakeall((struct tcb_list *)p_event);
+    b = sched_tcb_wakeall((struct tcb_list *)p_event);
     sched_unlock();
-    sched_preempt();
+    if(b)
+    {
+        sched_preempt();
+        return true;
+    }
+    return false;
 }
 
 void event_keepalive(event_t event)
