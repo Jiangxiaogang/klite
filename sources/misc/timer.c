@@ -10,22 +10,12 @@
 #include "list.h"
 #include "timer.h"
 
-struct timer
-{
-    struct timer *prev;
-    struct timer *next;
-    uint32_t counter;
-    uint32_t timeout;
-    void    *arg;
-    void   (*handler)(void *);
-};
-
 struct timer_list
 {
-    struct timer *head;
-    struct timer *tail;
-    mutex_t mutex;
-    event_t event;
+    timer_t *head;
+    timer_t *tail;
+    mutex_t  mutex;
+    event_t  event;
 };
 
 static struct timer_list m_timer_list;
@@ -34,7 +24,7 @@ static struct timer_list m_timer_list;
 static uint32_t timer_timetick(uint32_t tick)
 {
     uint32_t next_time;
-    struct timer *node;
+    timer_t *node;
     next_time = 0xFFFFFFFF;
     mutex_lock(m_timer_list.mutex);
     for(node = m_timer_list.head; node!=NULL; node=node->next)
@@ -78,47 +68,24 @@ static void timer_thread_entry(void *arg)
     }
 }
 
-//创建定时器
-timer_t timer_create(void)
-{
-    struct timer *node;
-    node = heap_alloc(sizeof(struct timer));
-    if(node != NULL)
-    {
-        memset(node, 0, sizeof(struct timer));
-    }
-    return node;
-}
-
-//删除定时器
-void timer_delete(timer_t timer)
-{
-    timer_stop(timer);
-    heap_free(timer);
-}
-
 //启动定时器
-void timer_start(timer_t timer, uint32_t timeout, void (*handler)(void *), void *arg)
+void timer_start(timer_t *timer, uint32_t timeout, void (*handler)(void *), void *arg)
 {
-    struct timer *node;
-    node = (struct timer *)timer;
-    node->counter = timeout;
-    node->timeout = timeout;
-    node->arg     = arg;
-    node->handler = handler;
+    timer->counter = timeout;
+    timer->timeout = timeout;
+    timer->arg     = arg;
+    timer->handler = handler;
     mutex_lock(m_timer_list.mutex);
-    list_append(&m_timer_list, node);
+    list_append(&m_timer_list, timer);
     mutex_unlock(m_timer_list.mutex);
     event_post(m_timer_list.event);
 }
 
 //停止定时器
-void timer_stop(timer_t timer)
+void timer_stop(timer_t *timer)
 {
-    struct timer *node;
-    node = (struct timer *)timer;
     mutex_lock(m_timer_list.mutex);
-    list_remove(&m_timer_list, node);
+    list_remove(&m_timer_list, timer);
     mutex_unlock(m_timer_list.mutex);
     event_post(m_timer_list.event);
 }

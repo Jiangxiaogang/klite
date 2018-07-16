@@ -19,7 +19,6 @@ struct mpool
     mutex_t   mutex;
 };
 
-
 mpool_t mpool_create(uint32_t block_size, uint32_t block_count)
 {
     uint32_t i;

@@ -88,7 +88,7 @@ uint32_t fifo_write(fifo_t ff, void *buf, uint32_t len)
     uint32_t i;
     uint32_t next;
     uint8_t *data;
-    struct fifo * fifo;
+    struct fifo *fifo;
 
     fifo = (struct fifo *)ff;
     data = buf;

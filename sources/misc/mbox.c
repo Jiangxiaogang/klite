@@ -13,53 +13,38 @@ struct mbox_object
     event_t  event;
 };
 
-mbox_t mbox_create(void)
+bool mbox_init(mbox_t *mbox)
 {
-    struct mbox_object *obj;
-    obj = heap_alloc(sizeof(struct mbox_object));
-    if(obj != NULL)
+    mbox->data = 0;
+    mbox->event= event_create(false);
+    if(mbox->event != NULL)
     {
-        obj->data = 0;
-        obj->event= event_create(false);
-        if(obj->event)
-        {
-            return obj;
-        }
-        heap_free(obj);
+        return true;
     }
-    return NULL;
+    return false;
 }
 
-void mbox_delete(mbox_t mbox)
+void mbox_delete(mbox_t *mbox)
 {
-    struct mbox_object *obj;
-    obj = (struct mbox_object *)mbox;
-    event_delete(obj->event);
-    heap_free(obj);
+    event_delete(mbox->event);
 }
 
-void mbox_post(mbox_t mbox, uint32_t data)
+void mbox_post(mbox_t *mbox, uint32_t data)
 {
-    struct mbox_object *obj;
-    obj = (struct mbox_object *)mbox;
-    obj->data = data;
-    event_post(obj->event);
+    mbox->data = data;
+    event_post(mbox->event);
 }
 
-void mbox_wait(mbox_t mbox, uint32_t *pdata)
+void mbox_wait(mbox_t *mbox, uint32_t *pdata)
 {
-    struct mbox_object *obj;
-    obj = (struct mbox_object *)mbox;
-    event_wait(obj->event);
-    *pdata = obj->data;
+    event_wait(mbox->event);
+    *pdata = mbox->data;
 }
 
-bool mbox_timedwait(mbox_t mbox, uint32_t *pdata, uint32_t timeout)
+bool mbox_timedwait(mbox_t *mbox, uint32_t *pdata, uint32_t timeout)
 {
     bool ret;
-    struct mbox_object *obj;
-    obj = (struct mbox_object *)mbox;
-    ret = event_timedwait(obj->event, timeout);
-    *pdata = obj->data;
+    ret = event_timedwait(mbox->event, timeout);
+    *pdata = mbox->data;
     return ret;
 }

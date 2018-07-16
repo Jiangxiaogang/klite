@@ -25,105 +25,59 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "scheduler.h"
+#include "semaphore.h"
 
-struct semaphore
+bool sem_init(sem_t *sem, uint32_t value)
 {
-    struct tcb_node *head;
-    struct tcb_node *tail;
-    uint32_t value;
-    uint32_t limit;
-};
-
-sem_t sem_create(uint32_t init_value, uint32_t max_value)
-{
-    struct semaphore *p_sem;
-    p_sem = heap_alloc(sizeof(struct semaphore));
-    if(p_sem != NULL)
-    {
-        p_sem->head  = NULL;
-        p_sem->tail  = NULL;
-        p_sem->value = init_value;
-        p_sem->limit = max_value;
-    }
-    return (sem_t)p_sem;
+    sem->event = event_create(0);
+    sem->mutex = mutex_create();
+    sem->value = value;
+    return true;
 }
 
-void sem_delete(sem_t sem)
+void sem_delete(sem_t *sem)
 {
-    heap_free(sem);
+    event_delete(sem->event);
+    mutex_delete(sem->mutex);
 }
 
-void sem_wait(sem_t sem)
+void sem_wait(sem_t *sem)
 {
-    struct semaphore *p_sem;
-    p_sem = (struct semaphore *)sem;
-    sched_lock();
-    if(p_sem->value != 0)
+    mutex_lock(sem->mutex);
+    if(sem->value != 0)
     {
-        p_sem->value--;
-        sched_unlock();
-        return;
-    }
-    sched_tcb_wait(sched_tcb_now, (struct tcb_list *)p_sem);
-    sched_unlock();
-    sched_switch();
-}
-
-bool sem_timedwait(sem_t sem, uint32_t timeout)
-{
-    struct semaphore *p_sem;
-    p_sem = (struct semaphore *)sem;
-    sched_lock();
-    if(p_sem->value != 0)
-    {
-        p_sem->value--;
-        sched_unlock();
-        return true;
-    }
-    if(timeout == 0)
-    {
-        sched_unlock();
-        return false;
-    }
-    sched_tcb_timedwait(sched_tcb_now, (struct tcb_list *)p_sem, timeout);
-    sched_unlock();
-    sched_switch();
-    return (sched_tcb_now->timeout != 0);
-}
-
-void sem_post(sem_t sem)
-{
-    struct semaphore *p_sem;
-    p_sem = (struct semaphore *)sem;
-    sched_lock();
-    if(sched_tcb_wake_one((struct tcb_list *)p_sem))
-    {
-        sched_unlock();
-        sched_preempt();
+        sem->value--;
+        mutex_unlock(sem->mutex);
     }
     else
     {
-        if(p_sem->value < p_sem->limit)
-        {
-            p_sem->value++;
-        }
-        sched_unlock();
+        mutex_unlock(sem->mutex);
+        event_wait(sem->event);
     }
 }
 
-void sem_clear(sem_t sem)
+bool sem_timedwait(sem_t *sem, uint32_t timeout)
 {
-    struct semaphore *p_sem;
-    p_sem = (struct semaphore *)sem;
-    sched_lock();
-    p_sem->value = 0;
-    sched_unlock();
+    mutex_lock(sem->mutex);
+    if(sem->value != 0)
+    {
+        sem->value--;
+        mutex_unlock(sem->mutex);
+        return true;
+    }
+    else
+    {
+        mutex_unlock(sem->mutex);
+        return event_timedwait(sem->event, timeout);
+    }
 }
 
-uint32_t sem_getvalue(sem_t sem)
+void sem_post(sem_t *sem)
 {
-    struct semaphore *p_sem;
-    p_sem = (struct semaphore *)sem;
-    return p_sem->value;
+    mutex_lock(sem->mutex);
+    if(!event_wakeone(sem->event))
+    {
+        sem->value++;
+    }
+    mutex_unlock(sem->mutex);
 }
