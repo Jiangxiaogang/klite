@@ -5,9 +5,9 @@ CC := /mingw32/arm/bin/arm-none-eabi-gcc
 AR := /mingw32/arm/bin/arm-none-eabi-ar
 CFLAGS :=-W -O0  -fshort-wchar
 
-SRCPATH:= ../../sources/kernel
-SRCDIRS:= $(SRCPATH)
-INCDIRS:= -I$(SRCPATH)
+SRCPATH:= ../../sources
+SRCDIRS:= $(SRCPATH)/kernel
+INCDIRS:= -I$(SRCDIRS)
 ALLSRC := $(wildcard $(SRCDIRS)/*.c) 
 ALLOBJ := $(ALLSRC:%.c=%.o) 
 TARGET := kernel.lib
