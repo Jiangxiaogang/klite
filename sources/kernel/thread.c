@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "scheduler.h"
+#include "sched.h"
 
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
 {

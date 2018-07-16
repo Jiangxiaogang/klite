@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "scheduler.h"
+#include "sched.h"
 
 struct mutex
 {

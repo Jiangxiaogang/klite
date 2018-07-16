@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "scheduler.h"
+#include "sched.h"
 #include "port.h"
 
 #define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))

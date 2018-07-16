@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "scheduler.h"
+#include "sched.h"
 
 #define MEM_ALIGN_BYTE      (4)
 #define MEM_ALIGN_MASK      (MEM_ALIGN_BYTE - 1)
