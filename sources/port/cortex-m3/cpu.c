@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "scheduler.h"
+#include "sched.h"
 
 #define NVIC_INT_CTRL (*((volatile uint32_t *)0xE000ED04))
 #define PEND_INT_SET  (1<<28)
