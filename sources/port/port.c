@@ -62,7 +62,7 @@ void cpu_os_init(void)
 //TODO: init systick.
 void cpu_os_start(void)
 {
-	SysTick_Config(CPU_FREQ_MHZ*100);
+	SysTick_Config(CPU_FREQ_MHZ*1000);
     NVIC_SetPriorityGrouping(NVIC_PriorityGroup_0);
 	NVIC_SetPriority(PendSV_IRQn, 255);
 	NVIC_SetPriority(SysTick_IRQn, 255);

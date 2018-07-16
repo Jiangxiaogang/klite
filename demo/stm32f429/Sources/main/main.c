@@ -6,12 +6,14 @@
 #include <string.h>
 #include "kernel.h"
 #include "timer.h"
+#include "semaphore.h"
 #include "log.h"
 #include "gpio.h"
 
 static timer_t  m_timer;
 static event_t  m_event;
 static thread_t m_idle;
+static sem_t    m_sem;
 
 uint32_t kernel_idletime(void)
 {
@@ -31,9 +33,10 @@ static void demo1_thread(void *arg)
     LOG("demo1_thread: 0x%08X\r\n", thread_self());
     while(1)
     {
-        sleep(2000);
-        event_post(m_event);
+        sleep(1000);
         LOG("demo1_thread wake up at %u\r\n", kernel_time());
+        //event_post(m_event);
+        sem_post(&m_sem);
     }
 }
 
@@ -45,11 +48,16 @@ static void blink_thread1(void *arg)
 	gpio_open(PC, 10, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
-        sleep(250);
+        //sleep(250);
 		gpio_write(PC, 10, 1);
-        sleep(250);
+        //sleep(250);
+        sem_wait(&m_sem);
+        LOG("blink_thread1 wake up at %u\r\n", kernel_time());
+        
+        
 		gpio_write(PC, 10, 0);
-        event_wait(m_event);
+        //event_wait(m_event);
+        sem_wait(&m_sem);
         LOG("blink_thread1 wake up at %u\r\n", kernel_time());
 	}
 }
@@ -62,10 +70,14 @@ static void blink_thread2(void *arg)
 	gpio_open(PG, 11, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
-        sleep(500);
+        //sleep(500);
 		gpio_write(PG, 11, 1);
-		sleep(500);
+        sem_wait(&m_sem);
+        LOG("blink_thread2 wake up at %u\r\n", kernel_time());
+        
+		//sleep(500);
 		gpio_write(PG, 11, 0);
+        sem_wait(&m_sem);
         LOG("blink_thread2 wake up at %u\r\n", kernel_time());
 	}
 }
@@ -111,6 +123,7 @@ void bsp_init(void)
 void app_init(void)
 {
 	log_init();
+    sem_init(&m_sem, 0);
     m_event = event_create(0);
     timer_start(&m_timer, 5000, timer_handler, 0);
 	thread_create(usage_thread, 0, 384);
