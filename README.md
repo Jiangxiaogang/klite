@@ -28,45 +28,43 @@ KLite是免费开源软件,基于 MIT 协议开放源代码.
 
 ## 2.修改port.c
         根据目标CPU的编程手册,实现port.c里面的3个空函数.
-	    void cpu_os_init(void)
-		这个函数被kernel_init调用,为用户提供一个接口,用于实现那些必须在系统初始化之前的准备工作,
-		例如初始化CPU的时钟, 设置FLASH等.
-		
-	    void cpu_os_start(void)
-		这个函数被kernel_start调用,为用户提供一个接口,用于实现那些必须在系统初始化之后,系统启动之前的准备工作,
-		例如初始化滴答定时器,设置系统中断等.
-		
-	    void cpu_os_idle(void)
-		这个函数被空闲线程调用,为用户提供一个接口,用于实现那些在系统空闲时需要完成的工作,
-		大多数情况下这个函数什么也不用做.
-
+        void cpu_os_init(void)
+        这个函数被kernel_init调用,为用户提供一个接口,用于实现那些必须在系统初始化之前的准备工作,
+        例如初始化CPU的时钟, 设置FLASH等.
+        
+        void cpu_os_start(void)
+        这个函数被kernel_start调用,为用户提供一个接口,用于实现那些必须在系统初始化之后,系统启动之前的准备工作,
+        例如初始化滴答定时器,设置系统中断等.
+        
         void SysTick_Handler(void)
-                这个函数是平台相关的滴答时钟中断函数,需要在滴答时钟中断中调用kernel_timetick(n),n表示一次中断的毫秒数.
+        这个函数是平台相关的滴答时钟中断函数,需要在滴答时钟中断中调用kernel_timetick(n),n表示一次中断的毫秒数.
 
 ## 3.在main函数里面添加初始化代码
-	main函数的推荐写法如下:
+    main函数的推荐写法如下:
 ```
 void init(void *arg)
 {
-	bsp_init();
-	app_init();
+    bsp_init();
+    app_init();
 }
 
 void main(void)
 {
-	kernel_init(HEAP_ADDR, HEAP_SIZE);
-	thread_create(init, 0, 0);
-	kernel_start();
+    kernel_init();
+    heap_init(HEAP_ADDR, HEAP_SIZE);
+    thread_create(init, 0, 0);
+    kernel_start();
 }
 ```
-	说明:
-	kernel_init 用于初始化内核,并设置堆内存;  
-	thread_create 创建第一个主线程init;  
-	kernel_start 用于启动内核;  
-	init是一个线程函数,在该函数中实现你的其它初始化代码.  
-	更多函数参数说明请参考API文档.  
+    说明:
+    kernel_init 用于初始化内核;
+    heap_init 初始化堆空间;
+    thread_create 创建第一个主线程init;  
+    kernel_start 用于启动内核;  
+    init是一个线程函数,在该函数中实现你的其它初始化代码.  
+    更多函数参数说明请参考API文档.  
 
 # 四.支持
-	如果你在使用中发现任何BUG或者改进建议,请加入我的QQ群(317930646)或发送邮件至kerndev@foxmail.com.  
+    如果你在使用中发现任何BUG或者改进建议,请加入我的QQ群(317930646)或发送邮件至kerndev@foxmail.com.  
 
-	
+    
