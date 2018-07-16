@@ -34,22 +34,21 @@
 typedef void *thread_t;
 typedef void *mutex_t;
 typedef void *event_t;
-typedef void *sem_t;
 typedef void *tasklet_t;
 
 /******************************************************************************
 * kernel
 ******************************************************************************/
-void     kernel_init(uint32_t heap_addr, uint32_t heap_size);
+void     kernel_init(void);
 void     kernel_start(void);
 void     kernel_timetick(uint32_t time);
 uint32_t kernel_time(void);
-uint32_t kernel_idletime(void);
 uint32_t kernel_version(void);
 
 /******************************************************************************
 * heap
 ******************************************************************************/
+void     heap_init(uint32_t heap_addr, uint32_t heap_size);
 void    *heap_alloc(uint32_t size);
 void     heap_free(void *p);
 void     heap_usage(uint32_t *total, uint32_t *used);
@@ -57,9 +56,11 @@ void     heap_usage(uint32_t *total, uint32_t *used);
 /******************************************************************************
 * thread
 ******************************************************************************/
-#define THREAD_PRIORITY_MAX (+127)
-#define THREAD_PRIORITY_MIN (-127)
+#define THREAD_PRIORITY_MAX     (+127)
+#define THREAD_PRIORITY_MIN     (-127)
+#define THREAD_PRIORITY_DEFAULT (0)
 
+#define THREAD_STACK_DEFAULT    (256)
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size);
 void     thread_delete(thread_t thread);
 void     thread_suspend(thread_t thread);
@@ -83,23 +84,15 @@ void     mutex_unlock(mutex_t mutex);
 /******************************************************************************
 * event
 ******************************************************************************/
-event_t  event_create(bool state, bool manual);
+event_t  event_create(bool state);
 void     event_delete(event_t event);
-void     event_clear(event_t event);
 void     event_post(event_t event);
 void     event_wait(event_t event);
 bool     event_timedwait(event_t event, uint32_t timeout);
-
-/******************************************************************************
-* semaphore
-******************************************************************************/
-sem_t    sem_create(uint32_t init_value, uint32_t max_value);
-void     sem_delete(sem_t sem);
-void     sem_clear(sem_t sem);
-void     sem_post(sem_t sem);
-void     sem_wait(sem_t sem);
-bool     sem_timedwait(sem_t sem, uint32_t timeout);
-uint32_t sem_getvalue(sem_t sem);
+void     event_wakeone(event_t event);
+void     event_wakeall(event_t event);
+void     event_keepalive(event_t event);
+void     event_clear(event_t event);
 
 /******************************************************************************
 * tasklet
@@ -115,7 +108,5 @@ void      tasklet_schedule(tasklet_t tasklet);
 #define malloc       heap_alloc
 #define free         heap_free
 #define sleep        thread_sleep
-#define event_set    event_post
-#define event_reset  event_clear
 
 #endif

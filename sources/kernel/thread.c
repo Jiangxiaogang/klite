@@ -27,30 +27,22 @@
 #include "kernel.h"
 #include "scheduler.h"
 
-#define THREAD_DEFAULT_STKSIZE  (256)
-#define THREAD_DEFAULT_PRIORITY (0)
-
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
 {
     struct tcb *tcb;
-    struct tcb_node *node;
     uint32_t tcb_size;
-    stack_size = stack_size ? stack_size : THREAD_DEFAULT_STKSIZE;
-    tcb_size = sizeof(struct tcb) + sizeof(struct tcb_node) * 2 + stack_size;
-    tcb = heap_alloc(tcb_size);
+    stack_size = stack_size ? stack_size : THREAD_STACK_DEFAULT;
+    tcb_size   = sizeof(struct tcb) + stack_size;
+    tcb        = heap_alloc(tcb_size);
     if(tcb != NULL)
     {
-        node = (struct tcb_node *)(tcb + 1);
-        tcb->nwait  = node++;
-        tcb->nsched = node++;
-        tcb->sp_min = (uintptr_t)node;
-        tcb->sp_max = tcb->sp_min + stack_size;
-        tcb->entry  = entry;
-        tcb->arg    = arg;
-        tcb->prio   = THREAD_DEFAULT_PRIORITY;
-        tcb->time   = 0;
-        tcb->nwait->tcb  = tcb;
-        tcb->nsched->tcb = tcb;
+        tcb->sp_min     = (uintptr_t)(tcb + 1);
+        tcb->sp_max     = tcb->sp_min + stack_size;
+        tcb->entry      = entry;
+        tcb->arg        = arg;
+        tcb->prio       = THREAD_PRIORITY_DEFAULT;
+        tcb->nwait.tcb  = tcb;
+        tcb->nsched.tcb = tcb;
         sched_tcb_init(tcb);
         sched_lock();
         sched_tcb_ready(tcb);

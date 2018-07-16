@@ -31,38 +31,19 @@
 #define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))
 #define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(3,2,0)
 
-static thread_t m_idle_thread;
 static uint32_t m_tick_count;
 
-extern void heap_init(uint32_t addr, uint32_t size);
-
-static void idle_thread(void *arg)
+void kernel_init(void)
 {
-    while(1)
-    {
-        cpu_os_idle();
-    }
-}
-
-static void idle_init(void)
-{
-    m_idle_thread = thread_create(idle_thread, 0, 0);
-    thread_setprio(m_idle_thread, THREAD_PRIORITY_MIN - 1);
-}
-
-void kernel_init(uint32_t heap_addr, uint32_t heap_size)
-{
+    m_tick_count = 0;
     cpu_os_init();
     sched_init();
-    heap_init(heap_addr, heap_size);
-    idle_init();
 }
 
 void kernel_start(void)
 {
     cpu_os_start();
     sched_switch();
-    cpu_os_idle();
 }
 
 void kernel_timetick(uint32_t time)
@@ -80,9 +61,4 @@ uint32_t kernel_version(void)
 uint32_t kernel_time(void)
 {
     return m_tick_count;
-}
-
-uint32_t kernel_idletime(void)
-{
-    return thread_time(m_idle_thread);
 }

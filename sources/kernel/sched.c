@@ -31,12 +31,12 @@
 
 struct tcb             *sched_tcb_now;
 struct tcb             *sched_tcb_new;
-struct tcb             *sched_tcb_isr;
-static int              sched_lock_count;
+static struct tcb      *sched_tcb_swi;
 static struct tcb_list  sched_list_sleep;
 static struct tcb_list  sched_list_ready;
+static int              sched_lock_count;
 
-void sched_tcb_insert(struct tcb_list *list, struct tcb_node *node)
+static void list_sorted_insert(struct tcb_list *list, struct tcb_node *node)
 {
     struct tcb_node *find;
     if(node->tcb->prio > 0)
@@ -63,19 +63,9 @@ void sched_tcb_insert(struct tcb_list *list, struct tcb_node *node)
     }
 }
 
-static void sched_tcb_switch(struct tcb *tcb)
-{
-    if(sched_tcb_now != tcb)
-    {
-        tcb->state = TCB_STATE_SWITCH;
-        tcb->lsched = NULL;
-        sched_tcb_new = tcb;
-        cpu_tcb_switch();
-    }
-}
-
 void sched_tcb_init(struct tcb *tcb)
 {
+    tcb->time    = 0;
     tcb->timeout = 0;
     tcb->state   = TCB_STATE_READY;
     tcb->lwait   = NULL;
@@ -83,15 +73,21 @@ void sched_tcb_init(struct tcb *tcb)
     cpu_tcb_init(tcb);
 }
 
+void sched_tcb_run(struct tcb *tcb)
+{
+    if(sched_tcb_now != tcb)
+    {
+        tcb->state = TCB_STATE_RUNNING;
+        sched_tcb_new = tcb;
+        cpu_tcb_switch();
+    }
+}
+
 void sched_tcb_ready(struct tcb *tcb)
 {
-    if(tcb->lsched)
-    {
-        list_remove(tcb->lsched, tcb->nsched);
-    }
     tcb->state  = TCB_STATE_READY;
     tcb->lsched = &sched_list_ready;
-    sched_tcb_insert(&sched_list_ready, tcb->nsched);
+    list_sorted_insert(&sched_list_ready, &tcb->nsched);
 }
 
 void sched_tcb_sleep(struct tcb *tcb, uint32_t timeout)
@@ -99,7 +95,7 @@ void sched_tcb_sleep(struct tcb *tcb, uint32_t timeout)
     tcb->state   = TCB_STATE_SLEEP;
     tcb->timeout = timeout;
     tcb->lsched  = &sched_list_sleep;
-    list_append(&sched_list_sleep, tcb->nsched);
+    list_append(&sched_list_sleep, &tcb->nsched);
 }
 
 void sched_tcb_suspend(struct tcb *tcb)
@@ -107,11 +103,11 @@ void sched_tcb_suspend(struct tcb *tcb)
     tcb->state |= TCB_STATE_SUSPEND;
     if(tcb->lwait)
     {
-        list_remove(tcb->lwait, tcb->nwait);
+        list_remove(tcb->lwait, &tcb->nwait);
     }
     if(tcb->lsched)
     {
-        list_remove(tcb->lsched, tcb->nsched);
+        list_remove(tcb->lsched, &tcb->nsched);
     }
 }
 
@@ -120,11 +116,11 @@ void sched_tcb_resume(struct tcb *tcb)
     tcb->state &= ~TCB_STATE_SUSPEND;
     if(tcb->lwait)
     {
-        sched_tcb_insert(tcb->lwait, tcb->nwait);
+        list_sorted_insert(tcb->lwait, &tcb->nwait);
     }
     if(tcb->lsched)
     {
-        sched_tcb_insert(tcb->lsched, tcb->nsched);
+        list_sorted_insert(tcb->lsched, &tcb->nsched);
     }
 }
 
@@ -132,7 +128,7 @@ void sched_tcb_wait(struct tcb *tcb, struct tcb_list *list)
 {
     tcb->state = TCB_STATE_WAIT;
     tcb->lwait = list;
-    sched_tcb_insert(list, tcb->nwait);
+    list_sorted_insert(list, &tcb->nwait);
 }
 
 void sched_tcb_timedwait(struct tcb *tcb, struct tcb_list *list, uint32_t timeout)
@@ -141,25 +137,40 @@ void sched_tcb_timedwait(struct tcb *tcb, struct tcb_list *list, uint32_t timeou
     tcb->timeout = timeout;
     tcb->lwait   = list;
     tcb->lsched  = &sched_list_sleep;
-    sched_tcb_insert(list, tcb->nwait);
-    list_append(&sched_list_sleep, tcb->nsched);
+    list_sorted_insert(list, &tcb->nwait);
+    list_append(&sched_list_sleep, &tcb->nsched);
 }
 
-bool sched_tcb_wake_one(struct tcb_list *list)
+void sched_tcb_wakeup(struct tcb *tcb)
+{
+    if(tcb->lwait)
+    {
+        list_remove(tcb->lwait, &tcb->nwait);
+        tcb->lwait = NULL;
+    }
+    if(tcb->lsched)
+    {
+        list_remove(tcb->lsched, &tcb->nsched);
+        tcb->lsched = NULL;
+    }
+    tcb->state  = TCB_STATE_READY;
+    tcb->lsched = &sched_list_ready;
+    list_sorted_insert(&sched_list_ready, &tcb->nsched);
+}
+
+bool sched_tcb_wakeone(struct tcb_list *list)
 {
     struct tcb *tcb;
     if(list->head)
     {
         tcb = list->head->tcb;
-        tcb->lwait = NULL;
-        list_remove(list, tcb->nwait);
-        sched_tcb_ready(tcb);
+        sched_tcb_wakeup(tcb);
         return true;
     }
     return false;
 }
 
-bool sched_tcb_wake_all(struct tcb_list *list)
+bool sched_tcb_wakeall(struct tcb_list *list)
 {
     struct tcb *tcb;
     if(list->head)
@@ -167,13 +178,28 @@ bool sched_tcb_wake_all(struct tcb_list *list)
         while(list->head)
         {
             tcb = list->head->tcb;
-            tcb->lwait = NULL;
-            list_remove(list, tcb->nwait);
-            sched_tcb_ready(tcb);
+            sched_tcb_wakeup(tcb);
         }
         return true;
     }
     return false;
+}
+
+void sched_swi_init(struct tcb *tcb)
+{
+    tcb->state = TCB_STATE_SUSPEND|TCB_STATE_READY;
+    tcb->prio  = THREAD_PRIORITY_MAX + 1;
+    sched_tcb_swi = tcb;
+}
+
+void sched_swi_raise(void)
+{
+    sched_tcb_swi->state &= ~TCB_STATE_SUSPEND;
+}
+
+void sched_swi_exit(void)
+{
+    sched_tcb_swi->state |= TCB_STATE_SUSPEND;
 }
 
 void sched_timetick(uint32_t time)
@@ -181,16 +207,17 @@ void sched_timetick(uint32_t time)
     struct tcb *tcb;
     struct tcb_node *node;
     struct tcb_node *next;
-    if(sched_tcb_now == NULL)
-    {
-        return;
-    }
-    sched_tcb_now->time += time;
+    cpu_irq_disable();
     if(sched_lock_count != 0)
     {
+        cpu_irq_enable();
         return;
     }
-    for(node=sched_list_sleep.head; node!=NULL; node=next)
+    if(sched_tcb_now != NULL)
+    {
+        sched_tcb_now->time += time;
+    }
+    for(node = sched_list_sleep.head; node != NULL; node = next)
     {
         next = node->next;
         tcb  = node->tcb;
@@ -200,16 +227,11 @@ void sched_timetick(uint32_t time)
         }
         else
         {
-            if(tcb->lwait)
-            {
-                list_remove(tcb->lwait, tcb->nwait);
-                tcb->lwait = NULL;
-            }
             tcb->timeout = 0;
-            list_remove(&sched_list_sleep, tcb->nsched);
-            sched_tcb_ready(tcb);
+            sched_tcb_wakeup(tcb);
         }
     }
+    cpu_irq_enable();
 }
 
 void sched_preempt(void)
@@ -221,17 +243,22 @@ void sched_preempt(void)
         cpu_irq_enable();
         return;
     }
-    if(sched_tcb_now->state != TCB_STATE_RUNNING)
+    if(sched_tcb_now == NULL)
     {
         cpu_irq_enable();
         return;
     }
-    if(sched_tcb_isr != NULL)
+    if(sched_tcb_now->state)
     {
-        if(sched_tcb_isr->state == TCB_STATE_READY)
+        cpu_irq_enable();
+        return;
+    }
+    if(sched_tcb_swi != NULL)
+    {
+        if(sched_tcb_swi->state == TCB_STATE_READY)
         {
             sched_tcb_ready(sched_tcb_now);
-            sched_tcb_switch(sched_tcb_isr);
+            sched_tcb_run(sched_tcb_swi);
             cpu_irq_enable();
             return;
         }
@@ -241,9 +268,10 @@ void sched_preempt(void)
         tcb = sched_list_ready.head->tcb;
         if(tcb->prio >= sched_tcb_now->prio)
         {
-            list_remove(&sched_list_ready, tcb->nsched);
+            tcb->lsched = NULL;
+            list_remove(&sched_list_ready, &tcb->nsched);
             sched_tcb_ready(sched_tcb_now);
-            sched_tcb_switch(tcb);
+            sched_tcb_run(tcb);
         }
     }
     cpu_irq_enable();
@@ -252,19 +280,22 @@ void sched_preempt(void)
 void sched_switch(void)
 {
     struct tcb *tcb;
-    cpu_irq_disable();
-    if(sched_tcb_isr != NULL)
+    if(sched_tcb_swi != NULL)
     {
-        if(sched_tcb_isr->state == TCB_STATE_READY)
+        if(sched_tcb_swi->state == TCB_STATE_READY)
         {
-            sched_tcb_switch(sched_tcb_isr);
+            cpu_irq_disable();
+            sched_tcb_run(sched_tcb_swi);
             cpu_irq_enable();
             return;
         }
     }
+    while(sched_list_ready.head == NULL);
+    cpu_irq_disable();
     tcb = sched_list_ready.head->tcb;
-    list_remove(&sched_list_ready, tcb->nsched);
-    sched_tcb_switch(tcb);
+    tcb->lsched = NULL;
+    list_remove(&sched_list_ready, &tcb->nsched);
+    sched_tcb_run(tcb);
     cpu_irq_enable();
 }
 
@@ -286,6 +317,7 @@ void sched_init(void)
 {
     sched_tcb_now = NULL;
     sched_tcb_new = NULL;
+    sched_tcb_swi = NULL;
     sched_lock_count = 0;
     list_init(&sched_list_ready);
     list_init(&sched_list_sleep);

@@ -25,7 +25,7 @@
 * SOFTWARE.
 ******************************************************************************/
 #include "kernel.h"
-#include "scheduler.h"
+#include "sched.h"
 #include "list.h"
 #include "port.h"
 
@@ -53,47 +53,21 @@ static void tasklet_thread(void *arg)
     {
         cpu_irq_disable();
         node = m_tasklet_list.head;
-        if(node != NULL)
+        if(node == NULL)
+        {
+            sched_swi_exit();
+            cpu_irq_enable();
+            sched_switch();
+        }
+        else
         {
             cpu_irq_enable();
             node->func(node->data);
-            
             cpu_irq_disable();
             node->state = false;
             list_remove(&m_tasklet_list, node);
             cpu_irq_enable();
         }
-        else
-        {
-            sched_tcb_isr->state = TCB_STATE_SUSPEND|TCB_STATE_READY;
-            cpu_irq_enable();
-            sched_switch();
-        }
-    }
-}
-
-void tasklet_init(uint32_t stack_size)
-{
-    struct tcb *tcb;
-    uint32_t tcb_size;
-    stack_size = stack_size ? stack_size : 256;
-    tcb_size = sizeof(struct tcb) + stack_size;
-    tcb = heap_alloc(tcb_size);
-    if(tcb != NULL)
-    {
-        tcb->nwait  = NULL;
-        tcb->nsched = NULL;
-        tcb->sp_min = (uint32_t)(tcb + 1);
-        tcb->sp_max = tcb->sp_min + stack_size;
-        tcb->entry  = tasklet_thread;
-        tcb->arg    = NULL;
-        tcb->prio   = THREAD_PRIORITY_MAX + 1;
-        tcb->time   = 0;
-        sched_tcb_init(tcb);
-        cpu_irq_disable();
-        sched_tcb_isr = tcb;
-        sched_tcb_isr->state |= TCB_STATE_SUSPEND;
-        cpu_irq_enable();
     }
 }
 
@@ -124,8 +98,29 @@ void tasklet_schedule(tasklet_t tasklet)
     {
         node->state = true;
         list_append(&m_tasklet_list, node);
-        sched_tcb_isr->state &= ~TCB_STATE_SUSPEND;
+        sched_swi_raise();
     }
     cpu_irq_enable();
     sched_preempt();
+}
+
+void tasklet_init(uint32_t stack_size)
+{
+    struct tcb *tcb;
+    uint32_t tcb_size;
+    stack_size = stack_size ? stack_size : THREAD_STACK_DEFAULT;
+    tcb_size = sizeof(struct tcb) + stack_size;
+    tcb = heap_alloc(tcb_size);
+    if(tcb != NULL)
+    {
+        tcb->sp_min = (uintptr_t)(tcb + 1);
+        tcb->sp_max = tcb->sp_min + stack_size;
+        tcb->entry  = tasklet_thread;
+        tcb->arg    = NULL;
+        tcb->prio   = THREAD_PRIORITY_MAX + 1;
+        tcb->nwait.tcb  = tcb;
+        tcb->nsched.tcb = tcb;
+        sched_tcb_init(tcb);
+        sched_swi_init(tcb);
+    }
 }

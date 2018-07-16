@@ -31,20 +31,21 @@ struct event
 {
     struct tcb_node *head;
     struct tcb_node *tail;
-    bool state;
-    bool manual;
+    uint8_t state;
 };
 
-event_t event_create(bool state, bool manual)
+#define EVENT_STATE_SIGNAL  0x01
+#define EVENT_STATE_KEEP    0x02
+
+event_t event_create(bool state)
 {
     struct event *p_event;
     p_event = heap_alloc(sizeof(struct event));
     if(p_event != NULL)
     {
-        p_event->head   = NULL;
-        p_event->tail   = NULL;
-        p_event->state  = state;
-        p_event->manual = manual;
+        p_event->head  = NULL;
+        p_event->tail  = NULL;
+        p_event->state = state ? EVENT_STATE_SIGNAL : 0;
     }
     return (event_t)p_event;
 }
@@ -61,10 +62,7 @@ void event_wait(event_t event)
     sched_lock();
     if(p_event->state)
     {
-        if(!p_event->manual)
-        {
-            p_event->state = false;
-        }
+        p_event->state &= ~EVENT_STATE_SIGNAL;
         sched_unlock();
         return;
     }
@@ -80,10 +78,7 @@ bool event_timedwait(event_t event, uint32_t timeout)
     sched_lock();
     if(p_event->state)
     {
-        if(!p_event->manual)
-        {
-            p_event->state = false;
-        }
+        p_event->state &= ~EVENT_STATE_SIGNAL;
         sched_unlock();
         return true;
     }
@@ -103,17 +98,47 @@ void event_post(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    if(sched_tcb_wake_all((struct tcb_list *)p_event))
+    if(sched_tcb_wakeone((struct tcb_list *)p_event))
     {
-        p_event->state = p_event->manual;
         sched_unlock();
         sched_preempt();
     }
     else
     {
-        p_event->state = true;
+        p_event->state |= EVENT_STATE_SIGNAL;
         sched_unlock();
     }
+}
+
+void event_wakeone(event_t event)
+{
+    struct event *p_event;
+    p_event = (struct event *)event;
+    sched_lock();
+    sched_tcb_wakeone((struct tcb_list *)p_event);
+    sched_unlock();
+    sched_preempt();
+}
+
+void event_wakeall(event_t event)
+{
+    struct event *p_event;
+    p_event = (struct event *)event;
+    sched_lock();
+    sched_tcb_wakeall((struct tcb_list *)p_event);
+    sched_unlock();
+    sched_preempt();
+}
+
+void event_keepalive(event_t event)
+{
+    struct event *p_event;
+    p_event = (struct event *)event;
+    sched_lock();
+    sched_tcb_wakeall((struct tcb_list *)p_event);
+    p_event->state |= EVENT_STATE_KEEP;
+    sched_unlock();
+    sched_preempt();
 }
 
 void event_clear(event_t event)
@@ -121,6 +146,6 @@ void event_clear(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    p_event->state = false;
+    p_event->state = 0;
     sched_unlock();
 }

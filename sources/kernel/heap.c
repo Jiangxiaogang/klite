@@ -68,7 +68,7 @@ static void heap_lock(void)
 static void heap_unlock(void)
 {
     sched_lock();
-    if(sched_tcb_wake_one((struct tcb_list *)m_heap_mutex))
+    if(sched_tcb_wakeone((struct tcb_list *)m_heap_mutex))
     {
         sched_unlock();
         sched_preempt();
