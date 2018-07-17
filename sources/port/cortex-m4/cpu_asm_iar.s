@@ -65,6 +65,5 @@ POPSTACK
     VPOPEQ  {S16-S31}
     CPSIE   I
     BX      LR
-    ALIGN
     END
     

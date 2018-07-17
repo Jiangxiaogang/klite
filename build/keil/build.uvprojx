@@ -381,6 +381,11 @@
               <FilePath>..\..\sources\kernel\event.c</FilePath>
             </File>
             <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
               <FileName>kernel.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\kernel.c</FilePath>
@@ -396,29 +401,14 @@
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>sem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\sem.c</FilePath>
-            </File>
-            <File>
-              <FileName>thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\thread.c</FilePath>
-            </File>
-            <File>
-              <FileName>heap.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\heap.c</FilePath>
-            </File>
-            <File>
               <FileName>tasklet.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
             </File>
             <File>
-              <FileName>object.c</FileName>
+              <FileName>thread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\object.c</FilePath>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -428,12 +418,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m0\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m0\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m0\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m0\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -507,12 +497,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m3\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m3\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m3\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m3\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -586,12 +576,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m4\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m4\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m4\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m4\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -972,6 +962,11 @@
               <FilePath>..\..\sources\kernel\event.c</FilePath>
             </File>
             <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
               <FileName>kernel.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\kernel.c</FilePath>
@@ -987,29 +982,14 @@
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>sem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\sem.c</FilePath>
-            </File>
-            <File>
-              <FileName>thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\thread.c</FilePath>
-            </File>
-            <File>
-              <FileName>heap.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\heap.c</FilePath>
-            </File>
-            <File>
               <FileName>tasklet.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
             </File>
             <File>
-              <FileName>object.c</FileName>
+              <FileName>thread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\object.c</FilePath>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1083,12 +1063,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m0\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m0\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m0\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m0\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -1098,12 +1078,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m3\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m3\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m3\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m3\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -1177,12 +1157,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m4\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m4\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m4\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m4\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -1563,6 +1543,11 @@
               <FilePath>..\..\sources\kernel\event.c</FilePath>
             </File>
             <File>
+              <FileName>heap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\kernel\heap.c</FilePath>
+            </File>
+            <File>
               <FileName>kernel.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\kernel.c</FilePath>
@@ -1578,29 +1563,14 @@
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>sem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\sem.c</FilePath>
-            </File>
-            <File>
-              <FileName>thread.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\thread.c</FilePath>
-            </File>
-            <File>
-              <FileName>heap.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\heap.c</FilePath>
-            </File>
-            <File>
               <FileName>tasklet.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
             </File>
             <File>
-              <FileName>object.c</FileName>
+              <FileName>thread.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\object.c</FilePath>
+              <FilePath>..\..\sources\kernel\thread.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1674,12 +1644,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m0\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m0\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m0\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m0\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -1753,12 +1723,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m3\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m3\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m3\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m3\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>
@@ -1768,12 +1738,12 @@
             <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m4\cpu.c</FilePath>
+              <FilePath>..\..\sources\port\cortex-m4\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\kernel\port\cortex-m4\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\port\cortex-m4\cpu_asm_keil.s</FilePath>
             </File>
           </Files>
         </Group>

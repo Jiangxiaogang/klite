@@ -60,6 +60,7 @@ POPSTACK
     POP     {R4-R11}
     CPSIE   I
     BX      LR
+    ALIGN
     ENDP
 
     END
