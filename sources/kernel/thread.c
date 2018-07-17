@@ -26,6 +26,7 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
+#include "port.h"
 
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
 {
@@ -121,10 +122,12 @@ void thread_yield(void)
 
 void thread_exit(void)
 {
+    struct tcb *tcb;
+    tcb = sched_tcb_now;
     sched_lock();
-    heap_free(sched_tcb_now);
     sched_tcb_now = NULL;
     sched_unlock();
+    heap_free(tcb);
     sched_switch();
 }
 

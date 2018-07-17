@@ -56,9 +56,15 @@ void     heap_usage(uint32_t *total, uint32_t *used);
 /******************************************************************************
 * thread
 ******************************************************************************/
-#define THREAD_PRIORITY_MAX     (+127)
-#define THREAD_PRIORITY_MIN     (-127)
-#define THREAD_PRIORITY_DEFAULT (0)
+#define THREAD_PRIORITY_MAX       (+127)
+#define THREAD_PRIORITY_MIN       (-127)
+#define THREAD_PRIORITY_DEFAULT   (0)
+
+#define THREAD_PRIORITY_REALTIME  (THREAD_PRIORITY_MAX)
+#define THREAD_PRIORITY_HIGH      (+1)
+#define THREAD_PRIORITY_NORMAL    (0)
+#define THREAD_PRIORITY_LOW       (-1)
+#define THREAD_PRIORITY_IDLE      (THREAD_PRIORITY_MIN)
 
 #define THREAD_STACK_DEFAULT    (256)
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size);

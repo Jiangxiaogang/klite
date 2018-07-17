@@ -32,6 +32,7 @@
 struct tcb             *sched_tcb_now;
 struct tcb             *sched_tcb_new;
 static struct tcb      *sched_tcb_swi;
+static bool             sched_swi_pend;
 static struct tcb_list  sched_list_sleep;
 static struct tcb_list  sched_list_ready;
 static int              sched_lock_count;
@@ -187,19 +188,30 @@ bool sched_tcb_wakeall(struct tcb_list *list)
 
 void sched_swi_init(struct tcb *tcb)
 {
-    tcb->state = TCB_STATE_SUSPEND|TCB_STATE_READY;
-    tcb->prio  = THREAD_PRIORITY_MAX + 1;
+    tcb->state = TCB_STATE_SUSPEND;
+    tcb->prio  = (int)(((unsigned)(-1))>>1);
     sched_tcb_swi = tcb;
 }
 
 void sched_swi_raise(void)
 {
-    sched_tcb_swi->state &= ~TCB_STATE_SUSPEND;
+    if(sched_tcb_swi != NULL)
+    {
+        if(sched_tcb_swi->state | TCB_STATE_SUSPEND)
+        {
+            sched_swi_pend = true;
+            sched_tcb_swi->state &= ~TCB_STATE_SUSPEND;
+        }
+    }
 }
 
 void sched_swi_exit(void)
 {
-    sched_tcb_swi->state |= TCB_STATE_SUSPEND;
+    if(sched_tcb_swi != NULL)
+    {
+        sched_swi_pend = false;
+        sched_tcb_swi->state = TCB_STATE_SUSPEND | TCB_STATE_READY;
+    }
 }
 
 void sched_timetick(uint32_t time)
@@ -248,20 +260,18 @@ void sched_preempt(void)
         cpu_irq_enable();
         return;
     }
-    if(sched_tcb_now->state)
+    if(sched_tcb_now->state != TCB_STATE_RUNNING)
     {
         cpu_irq_enable();
         return;
     }
-    if(sched_tcb_swi != NULL)
+    if(sched_swi_pend)
     {
-        if(sched_tcb_swi->state == TCB_STATE_READY)
-        {
-            sched_tcb_ready(sched_tcb_now);
-            sched_tcb_run(sched_tcb_swi);
-            cpu_irq_enable();
-            return;
-        }
+        sched_swi_pend = false;
+        sched_tcb_ready(sched_tcb_now);
+        sched_tcb_run(sched_tcb_swi);
+        cpu_irq_enable();
+        return;
     }
     if(sched_list_ready.head != NULL)
     {
@@ -280,17 +290,16 @@ void sched_preempt(void)
 void sched_switch(void)
 {
     struct tcb *tcb;
-    if(sched_tcb_swi != NULL)
+    while(sched_list_ready.head == NULL)
     {
-        if(sched_tcb_swi->state == TCB_STATE_READY)
+        if(sched_swi_pend)
         {
-            cpu_irq_disable();
+            sched_swi_pend = false;
             sched_tcb_run(sched_tcb_swi);
             cpu_irq_enable();
             return;
         }
     }
-    while(sched_list_ready.head == NULL);
     cpu_irq_disable();
     tcb = sched_list_ready.head->tcb;
     tcb->lsched = NULL;
@@ -318,6 +327,7 @@ void sched_init(void)
     sched_tcb_now = NULL;
     sched_tcb_new = NULL;
     sched_tcb_swi = NULL;
+    sched_swi_pend= false;
     sched_lock_count = 0;
     list_init(&sched_list_ready);
     list_init(&sched_list_sleep);

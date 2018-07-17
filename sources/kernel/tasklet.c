@@ -117,7 +117,6 @@ void tasklet_init(uint32_t stack_size)
         tcb->sp_max = tcb->sp_min + stack_size;
         tcb->entry  = tasklet_thread;
         tcb->arg    = NULL;
-        tcb->prio   = THREAD_PRIORITY_MAX + 1;
         tcb->nwait.tcb  = tcb;
         tcb->nsched.tcb = tcb;
         sched_tcb_init(tcb);
