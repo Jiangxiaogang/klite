@@ -29,7 +29,6 @@
 
 void cpu_os_init(void);
 void cpu_os_start(void);
-void cpu_os_idle(void);
 void cpu_irq_enable(void);
 void cpu_irq_disable(void);
 void cpu_tcb_init(struct tcb *tcb);
