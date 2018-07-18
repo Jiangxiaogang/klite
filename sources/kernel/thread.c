@@ -125,9 +125,9 @@ void thread_exit(void)
     struct tcb *tcb;
     tcb = sched_tcb_now;
     sched_lock();
+    heap_free(tcb);
     sched_tcb_now = NULL;
     sched_unlock();
-    heap_free(tcb);
     sched_switch();
 }
 
