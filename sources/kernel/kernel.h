@@ -39,7 +39,7 @@ typedef void *tasklet_t;
 /******************************************************************************
 * kernel
 ******************************************************************************/
-void     kernel_init(void);
+void     kernel_init(uint32_t heap_addr, uint32_t heap_size);
 void     kernel_start(void);
 void     kernel_timetick(uint32_t time);
 uint32_t kernel_time(void);
@@ -48,8 +48,7 @@ uint32_t kernel_version(void);
 /******************************************************************************
 * heap
 ******************************************************************************/
-void     heap_init(uint32_t heap_addr, uint32_t heap_size);
-void    *heap_alloc(uint32_t size);
+void*    heap_alloc(uint32_t size);
 void     heap_free(void *p);
 void     heap_usage(uint32_t *total, uint32_t *used);
 

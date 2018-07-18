@@ -29,15 +29,18 @@
 #include "port.h"
 
 #define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))
-#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(3,2,0)
+#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(3,2,1)
 
 static uint32_t m_tick_count;
 
-void kernel_init(void)
+void heap_init(uint32_t addr, uint32_t size);
+
+void kernel_init(uint32_t heap_addr, uint32_t heap_size)
 {
     m_tick_count = 0;
     cpu_os_init();
     sched_init();
+    heap_init(heap_addr, heap_size);
 }
 
 void kernel_start(void)
