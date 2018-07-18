@@ -26,7 +26,10 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
+#include "list.h"
 #include "port.h"
+
+static struct tcb_list m_list_exited;
 
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
 {
@@ -41,7 +44,7 @@ thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
         tcb->sp_max     = tcb->sp_min + stack_size;
         tcb->entry      = entry;
         tcb->arg        = arg;
-        tcb->prio       = THREAD_PRIORITY_DEFAULT;
+        tcb->prio       = THREAD_PRIORITY_NORMAL;
         tcb->nwait.tcb  = tcb;
         tcb->nsched.tcb = tcb;
         sched_tcb_init(tcb);
@@ -122,11 +125,8 @@ void thread_yield(void)
 
 void thread_exit(void)
 {
-    struct tcb *tcb;
-    tcb = sched_tcb_now;
     sched_lock();
-    heap_free(tcb);
-    sched_tcb_now = NULL;
+    sched_tcb_wait(sched_tcb_now, &m_list_exited);
     sched_unlock();
     sched_switch();
 }
@@ -136,3 +136,20 @@ thread_t thread_self(void)
     return (thread_t)sched_tcb_now;
 }
 
+void thread_cleanup(void)
+{
+    struct tcb_node *node;
+    while(m_list_exited.head)
+    {
+        node = m_list_exited.head;
+        sched_lock();
+        list_remove(&m_list_exited, node);
+        sched_unlock();
+        heap_free(node->tcb);
+    }
+}
+
+void thread_init(void)
+{
+    list_init(&m_list_exited);
+}

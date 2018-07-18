@@ -34,7 +34,6 @@
 typedef void *thread_t;
 typedef void *mutex_t;
 typedef void *event_t;
-typedef void *tasklet_t;
 
 /******************************************************************************
 * kernel
@@ -55,17 +54,14 @@ void     heap_usage(uint32_t *total, uint32_t *used);
 /******************************************************************************
 * thread
 ******************************************************************************/
-#define THREAD_PRIORITY_MAX       (+127)
-#define THREAD_PRIORITY_MIN       (-127)
-#define THREAD_PRIORITY_DEFAULT   (0)
-
-#define THREAD_PRIORITY_REALTIME  (THREAD_PRIORITY_MAX)
+#define THREAD_PRIORITY_REALTIME  (+3)
+#define THREAD_PRIORITY_HIGHEST   (+2)
 #define THREAD_PRIORITY_HIGH      (+1)
 #define THREAD_PRIORITY_NORMAL    (0)
 #define THREAD_PRIORITY_LOW       (-1)
-#define THREAD_PRIORITY_IDLE      (THREAD_PRIORITY_MIN)
-
-#define THREAD_STACK_DEFAULT    (256)
+#define THREAD_PRIORITY_LOWEST    (-2)
+#define THREAD_PRIORITY_IDLE      (-3)
+#define THREAD_STACK_DEFAULT      (256)
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size);
 void     thread_delete(thread_t thread);
 void     thread_suspend(thread_t thread);
@@ -77,6 +73,7 @@ void     thread_sleep(uint32_t time);
 void     thread_yield(void);
 void     thread_exit(void);
 thread_t thread_self(void);
+void     thread_cleanup(void);
 
 /******************************************************************************
 * mutex
@@ -98,14 +95,6 @@ bool     event_wakeone(event_t event);
 bool     event_wakeall(event_t event);
 void     event_keepalive(event_t event);
 void     event_clear(event_t event);
-
-/******************************************************************************
-* tasklet
-******************************************************************************/
-void      tasklet_init(uint32_t stack_size);
-tasklet_t tasklet_create(void (*func)(void *), void *data);
-void      tasklet_delete(tasklet_t tasklet);
-void      tasklet_schedule(tasklet_t tasklet);
 
 /******************************************************************************
 * alias
