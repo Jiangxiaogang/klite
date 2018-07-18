@@ -149,8 +149,7 @@ void idle(void *arg)
 int main(void)
 {
 	static uint8_t heap[8*1024];
-    kernel_init();
-    heap_init((uint32_t)heap, sizeof(heap));
+    kernel_init((uint32_t)heap, sizeof(heap));
     timer_init(1024, 0);
 //    //tasklet_init(1024); //tasklet³õÊ¼»¯
     thread_create(init, 0, 0);
