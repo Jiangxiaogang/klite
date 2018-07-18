@@ -4,14 +4,14 @@ KLite是免费开源软件,基于 MIT 协议开放源代码.
 作者: 蒋晓岗\<kerndev@foxmail.com> 保留所有权利.
 
 # 一.简介
-        KLite是一个基于ARM/Cortex-M微控制器设计的抢占式操作系统内核.
-        其设计思想是“简洁易用”, 以降低学习和使用难度为目标.
+        KLite是一个由个人开发者利用业余时间编写，创建于2015年5月6日，以MIT协议开放源代码。
+        它是一款入门级的小型抢占式操作系统内核，年轻人的第一款RTOS。
+        以简洁易用为设计目标，旨在降低学习嵌入式操作系统编程入门的难度。
         简洁的API风格,简洁的调用方式,简单的移植方法,可能是目前最简单易用的嵌入式操作系统内核.
         --支持优先级抢占  
         --支持相同优先级的线程
         --支持线程同步互斥  
         --支持动态内存管理
-        --支持中断下半部（tasklet机制）
         --支持多编译器GCC, IAR, MDK
 
 # 二.移植
@@ -50,15 +50,14 @@ void init(void *arg)
 
 void main(void)
 {
-    kernel_init();
-    heap_init(HEAP_ADDR, HEAP_SIZE);
+    static uint8_t heap[HEAP_SIZE];
+    kernel_init(uint32_t(heap), HEAP_SIZE);
     thread_create(init, 0, 0);
     kernel_start();
 }
 ```
     说明:
     kernel_init 用于初始化内核;
-    heap_init 初始化堆空间;
     thread_create 创建第一个主线程init;  
     kernel_start 用于启动内核;  
     init是一个线程函数,在该函数中实现你的其它初始化代码.  
