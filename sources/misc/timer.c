@@ -97,7 +97,7 @@ void timer_init(uint32_t stk_size, int prio)
     thread_t thread;
     list_init(&m_timer_list);
     m_timer_list.mutex = mutex_create();
-    m_timer_list.event = event_create(false);
+    m_timer_list.event = event_create();
     thread = thread_create(timer_thread_entry, 0, stk_size);
     thread_setprio(thread, prio);
 }

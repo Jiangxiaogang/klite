@@ -84,3 +84,18 @@ void mutex_unlock(mutex_t mutex)
         sched_unlock();
     }
 }
+
+bool mutex_trylock(mutex_t mutex)
+{
+    struct mutex *p_mutex;
+    p_mutex = (struct mutex *)mutex;
+    sched_lock();
+    if(p_mutex->lock == false)
+    {
+        p_mutex->lock = true;
+        sched_unlock();
+        return true;
+    }
+    sched_unlock();
+    return false;
+}

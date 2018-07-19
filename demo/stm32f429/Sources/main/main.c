@@ -96,8 +96,8 @@ void app_init(void)
     cnt = 0;
 	log_init();
     sem_init(&m_sem, 0);
-    m_event = event_create(0);
-    m_event2= event_create(0);
+    m_event = event_create();
+    m_event2= event_create();
 	thread_create(usage_thread, 0, 0);
 	thread_create(blink_thread, 0, 0);
     sleep(10000);

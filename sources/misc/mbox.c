@@ -16,7 +16,7 @@ struct mbox_object
 bool mbox_init(mbox_t *mbox)
 {
     mbox->data = 0;
-    mbox->event= event_create(false);
+    mbox->event= event_create();
     if(mbox->event != NULL)
     {
         return true;

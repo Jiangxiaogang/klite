@@ -37,7 +37,7 @@ struct event
 #define EVENT_STATE_SIGNAL  0x01
 #define EVENT_STATE_KEEP    0x02
 
-event_t event_create(bool state)
+event_t event_create(void)
 {
     struct event *p_event;
     p_event = heap_alloc(sizeof(struct event));
@@ -45,7 +45,7 @@ event_t event_create(bool state)
     {
         p_event->head  = NULL;
         p_event->tail  = NULL;
-        p_event->state = state ? EVENT_STATE_SIGNAL : 0;
+        p_event->state = 0;
     }
     return (event_t)p_event;
 }

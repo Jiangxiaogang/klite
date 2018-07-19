@@ -82,11 +82,12 @@ mutex_t  mutex_create(void);
 void     mutex_delete(mutex_t mutex);
 void     mutex_lock(mutex_t mutex);
 void     mutex_unlock(mutex_t mutex);
+bool     mutex_trylock(mutex_t mutex);
 
 /******************************************************************************
 * event
 ******************************************************************************/
-event_t  event_create(bool state);
+event_t  event_create(void);
 void     event_delete(event_t event);
 void     event_post(event_t event);
 void     event_wait(event_t event);

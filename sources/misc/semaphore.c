@@ -9,7 +9,7 @@
 
 bool sem_init(sem_t *sem, uint32_t value)
 {
-    sem->event = event_create(0);
+    sem->event = event_create();
     sem->mutex = mutex_create();
     sem->value = value;
     return true;
