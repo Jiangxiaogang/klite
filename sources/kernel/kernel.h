@@ -61,7 +61,7 @@ void     heap_usage(uint32_t *total, uint32_t *used);
 #define THREAD_PRIORITY_LOW       (-1)
 #define THREAD_PRIORITY_LOWEST    (-2)
 #define THREAD_PRIORITY_IDLE      (-3)
-#define THREAD_STACK_DEFAULT      (256)
+#define THREAD_STACK_DEFAULT      (1024)
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size);
 void     thread_delete(thread_t thread);
 void     thread_suspend(thread_t thread);

@@ -31,6 +31,11 @@
 
 static struct tcb_list m_list_exited;
 
+thread_t thread_self(void)
+{
+    return (thread_t)sched_tcb_now;
+}
+
 thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
 {
     struct tcb *tcb;
@@ -129,11 +134,6 @@ void thread_exit(void)
     sched_tcb_wait(sched_tcb_now, &m_list_exited);
     sched_unlock();
     sched_switch();
-}
-
-thread_t thread_self(void)
-{
-    return (thread_t)sched_tcb_now;
 }
 
 void thread_cleanup(void)

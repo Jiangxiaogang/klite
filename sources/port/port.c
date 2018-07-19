@@ -30,7 +30,7 @@
 #define HSE_FREQ_MHZ 16
 #define CPU_FREQ_MHZ 180
 
-//TODO: init cpu clocks.
+//初始化CPU时钟
 void cpu_os_init(void)
 {
 	RCC_HSICmd(ENABLE);
@@ -59,7 +59,7 @@ void cpu_os_init(void)
 	RCC_HSICmd(DISABLE);
 }
 
-//TODO: init systick.
+//初始化SysTick为系统提供时钟节拍.
 void cpu_os_start(void)
 {
 	SysTick_Config(CPU_FREQ_MHZ*1000);
@@ -68,7 +68,7 @@ void cpu_os_start(void)
 	NVIC_SetPriority(SysTick_IRQn, 255);
 }
 
-//systick irq handler
+//SysTick中断
 void SysTick_Handler(void)
 {
     kernel_timetick(1);

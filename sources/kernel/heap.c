@@ -83,7 +83,7 @@ static void heap_unlock(void)
 static struct heap_node * find_next_free(struct heap_node *node)
 {
     uint32_t free;
-    for(; node->next!=NULL; node=node->next)
+    for(; node->next != NULL; node = node->next)
     {
         free = ((uint32_t)node->next) - ((uint32_t)node) - node->used;
         if(free > sizeof(struct heap_node))
@@ -156,6 +156,7 @@ void heap_free(void *mem)
     node = (struct heap_node *)mem - 1;
     heap_lock();
     node->prev->next = node->next;
+    node->next->prev = node->prev;
     if(node->prev < m_heap_free)
     {
         m_heap_free = node->prev;
@@ -170,7 +171,7 @@ void heap_usage(uint32_t *total, uint32_t *used)
     *used  = 0;
     *total = m_heap_size;
     heap_lock();
-    for(node=m_heap_head; node!=NULL; node=node->next)
+    for(node = m_heap_head; node != NULL; node = node->next)
     {
         *used += node->used;
     }

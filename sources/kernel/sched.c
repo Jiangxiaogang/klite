@@ -34,6 +34,7 @@ struct tcb             *sched_tcb_new;
 static struct tcb_list  sched_list_sleep;
 static struct tcb_list  sched_list_ready;
 static int              sched_lock_count;
+static uint32_t         sched_time_delay;
 
 static void list_sorted_insert(struct tcb_list *list, struct tcb_node *node)
 {
@@ -184,17 +185,45 @@ bool sched_tcb_wakeall(struct tcb_list *list)
     return false;
 }
 
+void sched_lock(void)
+{
+    cpu_irq_disable();
+    sched_lock_count++;
+    cpu_irq_enable();
+}
+
+void sched_unlock(void)
+{
+    cpu_irq_disable();
+    sched_lock_count--;
+    cpu_irq_enable();
+}
+
+bool sched_trylock(void)
+{
+    cpu_irq_disable();
+    if(sched_lock_count != 0)
+    {
+        cpu_irq_enable();
+        return false;
+    }
+    sched_lock_count++;
+    cpu_irq_enable();
+    return true;
+}
+
 void sched_timetick(uint32_t time)
 {
     struct tcb *tcb;
     struct tcb_node *node;
     struct tcb_node *next;
-    cpu_irq_disable();
-    if(sched_lock_count != 0)
+    if(sched_trylock() == false)
     {
-        cpu_irq_enable();
+        sched_time_delay += time;
         return;
     }
+    time += sched_time_delay;
+    sched_time_delay = 0;
     if(sched_tcb_now != NULL)
     {
         sched_tcb_now->time += time;
@@ -213,39 +242,44 @@ void sched_timetick(uint32_t time)
             sched_tcb_wakeup(tcb);
         }
     }
-    cpu_irq_enable();
+    sched_unlock();
 }
 
 void sched_preempt(void)
 {
     struct tcb *tcb;
-    cpu_irq_disable();
-    if(sched_lock_count != 0)
+    if(sched_trylock() == false)
     {
-        cpu_irq_enable();
         return;
     }
     if(sched_tcb_now == NULL)
     {
-        cpu_irq_enable();
+        sched_unlock();
         return;
     }
     if(sched_tcb_now->state != TCB_STATE_RUNNING)
     {
-        cpu_irq_enable();
+        sched_unlock();
         return;
     }
-    if(sched_list_ready.head != NULL)
+    if(sched_list_ready.head == NULL)
     {
-        tcb = sched_list_ready.head->tcb;
-        if(tcb->prio >= sched_tcb_now->prio)
-        {
-            tcb->lsched = NULL;
-            list_remove(&sched_list_ready, &tcb->nsched);
-            sched_tcb_ready(sched_tcb_now);
-            sched_tcb_run(tcb);
-        }
+        sched_unlock();
+        return;
     }
+    tcb = sched_list_ready.head->tcb;
+    if(tcb->prio < sched_tcb_now->prio)
+    {
+        sched_unlock();
+        return;
+    }
+    tcb->lsched = NULL;
+    list_remove(&sched_list_ready, &tcb->nsched);
+    sched_tcb_ready(sched_tcb_now);
+    sched_unlock();
+    
+    cpu_irq_disable();
+    sched_tcb_run(tcb);
     cpu_irq_enable();
 }
 
@@ -253,25 +287,15 @@ void sched_switch(void)
 {
     struct tcb *tcb;
     while(sched_list_ready.head == NULL);
-    cpu_irq_disable();
+    
+    sched_lock();
     tcb = sched_list_ready.head->tcb;
     tcb->lsched = NULL;
     list_remove(&sched_list_ready, &tcb->nsched);
+    sched_unlock();
+    
+    cpu_irq_disable();
     sched_tcb_run(tcb);
-    cpu_irq_enable();
-}
-
-void sched_lock(void)
-{
-    cpu_irq_disable();
-    sched_lock_count++;
-    cpu_irq_enable();
-}
-
-void sched_unlock(void)
-{
-    cpu_irq_disable();
-    sched_lock_count--;
     cpu_irq_enable();
 }
 
@@ -280,6 +304,7 @@ void sched_init(void)
     sched_tcb_now = NULL;
     sched_tcb_new = NULL;
     sched_lock_count = 0;
+    sched_time_delay = 0;
     list_init(&sched_list_ready);
     list_init(&sched_list_sleep);
 }
