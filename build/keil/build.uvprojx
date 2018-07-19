@@ -401,11 +401,6 @@
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>tasklet.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
-            </File>
-            <File>
               <FileName>thread.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\thread.c</FilePath>
@@ -982,11 +977,6 @@
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
             </File>
             <File>
-              <FileName>tasklet.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
-            </File>
-            <File>
               <FileName>thread.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\thread.c</FilePath>
@@ -1561,11 +1551,6 @@
               <FileName>sched.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
-            </File>
-            <File>
-              <FileName>tasklet.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
             </File>
             <File>
               <FileName>thread.c</FileName>

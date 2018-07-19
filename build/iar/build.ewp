@@ -2897,9 +2897,6 @@
       <name>$PROJ_DIR$\..\..\sources\kernel\sched.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\sources\kernel\tasklet.c</name>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\..\sources\kernel\thread.c</name>
     </file>
   </group>
