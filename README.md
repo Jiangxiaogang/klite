@@ -42,23 +42,36 @@ KLite是免费开源软件,基于 MIT 协议开放源代码.
 ## 3.在main函数里面添加初始化代码
     main函数的推荐写法如下:
 ```
+//用于初始化程序的线程
 void init(void *arg)
 {
     bsp_init();
     app_init();
 }
 
+//空闲线程,需要调用thread_cleanup回收已结束的线程资源
+void idle(void *arg)
+{
+    thread_setprio(thread_self(), THREAD_PRIORITY_IDLE);
+    while(1)
+    {
+        thread_cleanup();
+    }
+}
+
+//C语言程序入口
 void main(void)
 {
     static uint8_t heap[HEAP_SIZE];
-    kernel_init(uint32_t(heap), HEAP_SIZE);
+    kernel_init((uint32_t)heap, HEAP_SIZE);
     thread_create(init, 0, 0);
+    thread_create(idle, 0, 0);
     kernel_start();
 }
 ```
     说明:
     kernel_init 用于初始化内核;
-    thread_create 创建第一个主线程init;  
+    thread_create 创建主线程init和idle;  
     kernel_start 用于启动内核;  
     init是一个线程函数,在该函数中实现你的其它初始化代码.  
     更多函数参数说明请参考API文档.  
