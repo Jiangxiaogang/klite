@@ -332,7 +332,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Sources\cpu;.\Sources\driver;.\Sources\kernel;..\..\sources\kernel;.\Sources\cpu\cmsis;.\Sources\cpu\lib;..\..\sources\misc</IncludePath>
+              <IncludePath>.\Sources\cpu;.\Sources\driver;.\Sources\main;..\..\sources\kernel;.\Sources\cpu\cmsis;.\Sources\cpu\lib;..\..\sources\misc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -464,11 +464,6 @@
               <FileName>sched.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\sources\kernel\sched.c</FilePath>
-            </File>
-            <File>
-              <FileName>tasklet.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\kernel\tasklet.c</FilePath>
             </File>
             <File>
               <FileName>thread.c</FileName>

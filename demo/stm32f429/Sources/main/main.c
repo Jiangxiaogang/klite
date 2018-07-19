@@ -5,15 +5,14 @@
 #include <stdio.h>
 #include <string.h>
 #include "kernel.h"
-#include "timer.h"
 #include "semaphore.h"
 #include "log.h"
 #include "gpio.h"
 
-static timer_t  m_timer;
-static event_t  m_event;
-static thread_t m_idle;
 static sem_t    m_sem;
+static event_t  m_event;
+static event_t  m_event2;
+static thread_t m_idle;
 
 //获取系统空闲时长(现已从内核API中移除，所以自己实现)
 uint32_t kernel_idletime(void)
@@ -21,69 +20,37 @@ uint32_t kernel_idletime(void)
     return thread_time(m_idle);
 }
 
-//定时器处理函数
-static void timer_handler(void *arg)
-{
-	LOG("I am timer handler, time=%u, arg=0x%p.\r\n", kernel_time(), arg);
-}
-
 //演示线程
-//定时发送信号
+//测试线程自动退出
 static void demo1_thread(void *arg)
 {
     LOG("demo1_thread: 0x%08X\r\n", thread_self());
-    while(1)
-    {
-        sleep(1000);
-        LOG("demo1_thread wake up at %u\r\n", kernel_time());
-        //event_post(m_event);
-        sem_post(&m_sem);
-    }
+    event_wait(m_event);    //线程同步，等待通知
+    LOG("demo1_thread: 0x%08X exited!\r\n", thread_self());
+    sem_post(&m_sem);
 }
 
-//LED闪烁线程1
-//每闪烁一次LED灯，等待一次信号
-static void blink_thread1(void *arg)
+//LED闪烁线程
+//测试线程休眠时间
+static void blink_thread(void *arg)
 {
 	LOG("blink_thread1: 0x%08X\r\n", thread_self());
 	gpio_open(PC, 10, GPIO_MODE_OUT, GPIO_OUT_PP);
+    gpio_open(PG, 11, GPIO_MODE_OUT, GPIO_OUT_PP);
 	while(1)
 	{
-        //sleep(250);
 		gpio_write(PC, 10, 1);
-        //sleep(250);
-        sem_wait(&m_sem);
-        LOG("blink_thread1 wake up at %u\r\n", kernel_time());
-        
-        
+        gpio_write(PG, 11, 1);
+        sleep(500);
 		gpio_write(PC, 10, 0);
-        //event_wait(m_event);
-        sem_wait(&m_sem);
-        LOG("blink_thread1 wake up at %u\r\n", kernel_time());
-	}
-}
-
-//LED闪烁线程2
-//每闪烁一次LED灯，等待一次信号
-static void blink_thread2(void *arg)
-{
-	LOG("blink_thread2: 0x%08X\r\n", thread_self());
-	gpio_open(PG, 11, GPIO_MODE_OUT, GPIO_OUT_PP);
-	while(1)
-	{
-        //sleep(500);
-		gpio_write(PG, 11, 1);
-        sem_wait(&m_sem);
-        LOG("blink_thread2 wake up at %u\r\n", kernel_time());
-        
-		//sleep(500);
-		gpio_write(PG, 11, 0);
-        sem_wait(&m_sem);
-        LOG("blink_thread2 wake up at %u\r\n", kernel_time());
+        gpio_write(PG, 11, 0);
+        sleep(500);
+        //LOG("%u\r\n", kernel_time());
 	}
 }
 
 //计算资源占用率
+//利用“空闲时间/总时间”计算CPU使用率
 static void usage_thread(void *arg)
 {
 	uint32_t ver;
@@ -107,6 +74,7 @@ static void usage_thread(void *arg)
 		idle = kernel_idletime() - idle;
 		heap_usage(&total, &used);
 		LOG("CPU:%2d%%, RAM:%d/%dB\r\n", 100*(tick-idle)/tick, used, total);
+        event_wakeone(m_event2);    //如果有线程在等待，则唤醒其中一个
 	}
 }
 
@@ -123,14 +91,36 @@ void bsp_init(void)
 
 void app_init(void)
 {
+    int cnt;
+    thread_t thrd;
+    cnt = 0;
 	log_init();
     sem_init(&m_sem, 0);
     m_event = event_create(0);
-    timer_start(&m_timer, 5000, timer_handler, 0);
-	thread_create(usage_thread, 0, 384);
-    thread_create(demo1_thread, 0, 384);
-	thread_create(blink_thread1, 0, 384);
-    thread_create(blink_thread2, 0, 384);
+    m_event2= event_create(0);
+	thread_create(usage_thread, 0, 0);
+	thread_create(blink_thread, 0, 0);
+    sleep(10000);
+    while(1)
+    {
+        event_wait(m_event2);   //等待打印内存用量
+        thrd = thread_create(demo1_thread, 0, 0);
+        if(thrd == NULL)
+        {
+            LOG("create threads count: %d.\r\n", cnt); 
+            while(cnt)
+            {
+                event_wait(m_event2);   //等待打印内存用量
+                event_post(m_event);    //触发事件，通知等待中的线程
+                sem_wait(&m_sem);       //等待计数信号量
+                cnt--;
+            }
+            LOG("all threads exit.\r\n");
+            sleep(10000);
+            continue;
+        }
+        cnt++;
+    }
 }
 
 //初始化线程
@@ -140,18 +130,23 @@ void init(void *arg)
 	app_init();
 }
 
+//空闲线程
 void idle(void *arg)
 {
-    thread_setprio(thread_self(), THREAD_PRIORITY_MIN);
-    while(1);
+    thread_t thrd;
+    thrd = thread_self();
+    LOG("idle thread: 0x%08X\r\n", thrd);
+    thread_setprio(thrd, THREAD_PRIORITY_IDLE); //设置线程优先级为空闲级
+    while(1)
+    {
+        thread_cleanup();   //清理已退出的线程(必须调用,否则自动退出的线程资源不会被释放)
+    }
 }
 
 int main(void)
 {
-	static uint8_t heap[8*1024];
+	static uint8_t heap[16*1024];
     kernel_init((uint32_t)heap, sizeof(heap));
-    timer_init(1024, 0);
-//    //tasklet_init(1024); //tasklet初始化
     thread_create(init, 0, 0);
     m_idle = thread_create(idle, 0, 0);
     kernel_start();
