@@ -142,7 +142,7 @@ bool event_wakeall(event_t event)
     return false;
 }
 
-void event_keepalive(event_t event)
+void event_keepawake(event_t event)
 {
     struct event *p_event;
     p_event = (struct event *)event;
@@ -153,7 +153,7 @@ void event_keepalive(event_t event)
     sched_preempt();
 }
 
-void event_clear(event_t event)
+void event_reset(event_t event)
 {
     struct event *p_event;
     p_event = (struct event *)event;

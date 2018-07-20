@@ -27,7 +27,6 @@
 #include "kernel.h"
 #include "sched.h"
 #include "list.h"
-#include "port.h"
 
 static struct tcb_list m_list_exited;
 
@@ -131,7 +130,7 @@ void thread_yield(void)
 void thread_exit(void)
 {
     sched_lock();
-    sched_tcb_wait(sched_tcb_now, &m_list_exited);
+    list_append(&m_list_exited, &sched_tcb_now->nwait);
     sched_unlock();
     sched_switch();
 }
