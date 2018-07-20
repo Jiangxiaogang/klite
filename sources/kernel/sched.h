@@ -74,6 +74,7 @@ void sched_switch(void);
 void sched_preempt(void);
 void sched_timetick(uint32_t time);
 
+void sched_tcb_reorder(struct tcb *tcb);
 void sched_tcb_init(struct tcb *tcb);
 void sched_tcb_ready(struct tcb *tcb);
 void sched_tcb_suspend(struct tcb *tcb);
@@ -84,9 +85,5 @@ void sched_tcb_timedwait(struct tcb *tcb, struct tcb_list *list, uint32_t timeou
 void sched_tcb_wakeup(struct tcb *tcb);
 bool sched_tcb_wakeone(struct tcb_list *list);
 bool sched_tcb_wakeall(struct tcb_list *list);
-
-void sched_swi_init(struct tcb *tcb);
-void sched_swi_raise(void);
-void sched_swi_exit(void);
 
 #endif

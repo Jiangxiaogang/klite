@@ -91,7 +91,10 @@ void thread_setprio(thread_t thread, int prio)
 {
     struct tcb *tcb;
     tcb = (struct tcb *)thread;
+    sched_lock();
     tcb->prio = prio;
+    sched_tcb_reorder(tcb);
+    sched_unlock();
 }
 
 int thread_getprio(thread_t thread)
@@ -131,6 +134,7 @@ void thread_exit(void)
 {
     sched_lock();
     list_append(&m_list_exited, &sched_tcb_now->nwait);
+    sched_tcb_now = NULL;
     sched_unlock();
     sched_switch();
 }

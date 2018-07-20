@@ -63,6 +63,20 @@ static void list_sorted_insert(struct tcb_list *list, struct tcb_node *node)
     }
 }
 
+void sched_tcb_reorder(struct tcb *tcb)
+{
+    if(tcb->lwait)
+    {
+        list_remove(tcb->lwait, &tcb->nwait);
+        list_sorted_insert(tcb->lwait, &tcb->nwait);
+    }
+    if(tcb->lsched)
+    {
+        list_remove(tcb->lsched, &tcb->nsched);
+        list_sorted_insert(tcb->lsched, &tcb->nsched);
+    }
+}
+
 void sched_tcb_init(struct tcb *tcb)
 {
     tcb->time    = 0;
