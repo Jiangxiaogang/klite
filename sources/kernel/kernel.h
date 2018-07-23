@@ -96,7 +96,7 @@ void     event_wait(event_t event);
 bool     event_timedwait(event_t event, uint32_t timeout);
 bool     event_wakeone(event_t event);
 bool     event_wakeall(event_t event);
-void     event_keepawake(event_t event);
+void     event_fire(event_t event);
 void     event_reset(event_t event);
 
 /******************************************************************************
