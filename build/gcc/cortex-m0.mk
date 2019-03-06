@@ -1,4 +1,4 @@
-DIR=$(SRCPATH)/port/cortex-m0
+DIR=$(SRCPATH)/arch/cortex-m0
 SRCDIRS+=$(DIR)
 ALLSRC+=$(DIR)/cpu.c
 ALLSRC+=$(DIR)/cpu_asm_gcc.s
