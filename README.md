@@ -17,24 +17,23 @@ KLite是免费开源软件,基于 MIT 协议开放源代码.
 # 二.移植
         KLite目前已经为Cortex-M0/M3/M4架构做好了底层适配,如果你的CPU平台是基于以上平台的,
         如STM32,GD32,NRF51,NRF52,Freescale K40等系列单片机,那么可以直接使用预编译的库文件进行开发,
-        只需要修改port.c里面几个简单的函数即可开始编程.
+        只需要修改template.c里面几个简单的函数即可开始编程.
         否则可能需要自行移植CPU底层的汇编代码.
 
 # 三.开始使用
 ## 1.编译KLite
         在build目录下面有预设的工程文件,选择你要使用的编译器和目标CPU平台,  
-        编译完成后,会生成kernel.lib文件,将kernel.lib, kernel.h, port.c复制到你的项目源码中,
-        使用lib文件可以减少重复编译时间.
+        编译完成后,会生成kernel.lib文件,将kernel.lib, kernel.h, template.c复制到你的项目源码中,
+        使用lib文件可以减少重复编译时间,当然你也可以选择把全部源码添加到你的工程中.
 
-## 2.修改port.c
-        根据目标CPU的编程手册,实现port.c里面的3个空函数.
-        void cpu_os_init(void)
+## 2.修改template.c
+        根据目标CPU的编程手册,实现template.c里面的2个空函数.
+        void cpu_sys_init(void)
         这个函数被kernel_init调用,为用户提供一个接口,用于实现那些必须在系统初始化之前的准备工作,
         例如初始化CPU的时钟, 设置FLASH等.
         
-        void cpu_os_start(void)
-        这个函数被kernel_start调用,为用户提供一个接口,用于实现那些必须在系统初始化之后,系统启动之前的准备工作,
-        例如初始化滴答定时器,设置系统中断等.
+        void cpu_sys_idle(uint32_t time)
+        这个函数被kernel_idle调用,为用户提供一个接口,用于实现系统休眠.
         
         void SysTick_Handler(void)
         这个函数是平台相关的滴答时钟中断函数,需要在滴答时钟中断中调用kernel_timetick(n),n表示一次中断的毫秒数.
@@ -49,14 +48,10 @@ void init(void *arg)
     app_init();
 }
 
-//空闲线程,需要调用thread_cleanup回收已结束的线程资源
+//空闲线程,只需调用kernel_idle即可
 void idle(void *arg)
 {
-    thread_setprio(thread_self(), THREAD_PRIORITY_IDLE);
-    while(1)
-    {
-        thread_cleanup();
-    }
+    kernel_idle();
 }
 
 //C语言程序入口
@@ -77,6 +72,6 @@ void main(void)
     更多函数参数说明请参考API文档.  
 
 # 四.支持
-    如果你在使用中发现任何BUG或者改进建议,请加入我的QQ群(317930646)或发送邮件至kerndev@foxmail.com.  
+    如果你在使用中发现任何BUG或者改进建议,请加入QQ群(317930646)或发送邮件至kerndev@foxmail.com.  
 
     
