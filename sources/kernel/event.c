@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2019 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -31,11 +31,11 @@ struct event
 {
     struct tcb_node *head;
     struct tcb_node *tail;
-    uint8_t state;
+    uint8_t fire;
 };
 
-#define EVENT_STATE_SIGNAL  0x01
-#define EVENT_STATE_KEEP    0x02
+#define EVENT_FIRE_ONCE  0x01
+#define EVENT_FIRE_KEEP  0x02
 
 event_t event_create(void)
 {
@@ -43,9 +43,9 @@ event_t event_create(void)
     p_event = heap_alloc(sizeof(struct event));
     if(p_event != NULL)
     {
-        p_event->head  = NULL;
-        p_event->tail  = NULL;
-        p_event->state = 0;
+        p_event->head = NULL;
+        p_event->tail = NULL;
+        p_event->fire = 0;
     }
     return (event_t)p_event;
 }
@@ -60,9 +60,9 @@ void event_wait(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    if(p_event->state)
+    if(p_event->fire)
     {
-        p_event->state &= ~EVENT_STATE_SIGNAL;
+        p_event->fire &= ~EVENT_FIRE_ONCE;
         sched_unlock();
         return;
     }
@@ -76,9 +76,9 @@ bool event_timedwait(event_t event, uint32_t timeout)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    if(p_event->state)
+    if(p_event->fire)
     {
-        p_event->state &= ~EVENT_STATE_SIGNAL;
+        p_event->fire &= ~EVENT_FIRE_ONCE;
         sched_unlock();
         return true;
     }
@@ -93,6 +93,36 @@ bool event_timedwait(event_t event, uint32_t timeout)
     return (sched_tcb_now->timeout != 0);
 }
 
+bool event_signal(event_t event)
+{
+    struct event *p_event;
+    p_event = (struct event *)event;
+    sched_lock();
+    if(sched_tcb_wakeone((struct tcb_list *)p_event))
+    {
+        sched_unlock();
+		sched_preempt();
+        return true;
+    }
+    sched_unlock();
+    return false;
+}
+
+bool event_broadcast(event_t event)
+{
+    struct event *p_event;
+    p_event = (struct event *)event;
+    sched_lock();
+    if(sched_tcb_wakeall((struct tcb_list *)p_event))
+    {
+        sched_unlock();
+		sched_preempt();
+        return true;
+    }
+    sched_unlock();
+    return false;
+}
+
 void event_post(event_t event)
 {
     struct event *p_event;
@@ -101,45 +131,11 @@ void event_post(event_t event)
     if(sched_tcb_wakeone((struct tcb_list *)p_event))
     {
         sched_unlock();
-        sched_preempt();
+		sched_preempt();
+		return;
     }
-    else
-    {
-        p_event->state |= EVENT_STATE_SIGNAL;
-        sched_unlock();
-    }
-}
-
-bool event_wakeone(event_t event)
-{
-    bool b;
-    struct event *p_event;
-    p_event = (struct event *)event;
-    sched_lock();
-    b = sched_tcb_wakeone((struct tcb_list *)p_event);
+    p_event->fire |= EVENT_FIRE_ONCE;
     sched_unlock();
-    if(b)
-    {
-        sched_preempt();
-        return true;
-    }
-    return false;
-}
-
-bool event_wakeall(event_t event)
-{
-    bool b;
-    struct event *p_event;
-    p_event = (struct event *)event;
-    sched_lock();
-    b = sched_tcb_wakeall((struct tcb_list *)p_event);
-    sched_unlock();
-    if(b)
-    {
-        sched_preempt();
-        return true;
-    }
-    return false;
 }
 
 void event_fire(event_t event)
@@ -147,10 +143,10 @@ void event_fire(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
+    p_event->fire |= EVENT_FIRE_KEEP;
     sched_tcb_wakeall((struct tcb_list *)p_event);
-    p_event->state |= EVENT_STATE_KEEP;
     sched_unlock();
-    sched_preempt();
+	sched_preempt();
 }
 
 void event_reset(event_t event)
@@ -158,6 +154,6 @@ void event_reset(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    p_event->state = 0;
+    p_event->fire = 0;
     sched_unlock();
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2019 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -80,7 +80,7 @@ static void heap_unlock(void)
     }
 }
 
-static struct heap_node * find_next_free(struct heap_node *node)
+static struct heap_node *find_next_free(struct heap_node *node)
 {
     uint32_t free;
     for(; node->next != NULL; node = node->next)
@@ -98,9 +98,8 @@ void heap_init(uint32_t addr, uint32_t size)
 {
     uint32_t start;
     uint32_t end;
-    
     start = MEM_ALIGN_PAD(addr);
-    end   = MEM_ALIGN_CUT(addr + size);
+    end = MEM_ALIGN_CUT(addr + size);
     m_heap_size = end - start;
     m_heap_head = (struct heap_node *)start;
     m_heap_head->used = sizeof(struct heap_node) + sizeof(struct heap_mutex);
@@ -110,7 +109,6 @@ void heap_init(uint32_t addr, uint32_t size)
     m_heap_head->next->prev = m_heap_head;
     m_heap_head->next->next = NULL;
     m_heap_free = m_heap_head;
-    
     m_heap_mutex = (struct heap_mutex *)(m_heap_head + 1);
     m_heap_mutex->head = NULL;
     m_heap_mutex->tail = NULL;
@@ -123,7 +121,6 @@ void *heap_alloc(uint32_t size)
     uint32_t need;
     struct heap_node *temp;
     struct heap_node *node;
-    
     need = size + sizeof(struct heap_node);
     need = MEM_ALIGN_PAD(need);
     heap_lock();
@@ -167,8 +164,7 @@ void heap_free(void *mem)
 void heap_usage(uint32_t *total, uint32_t *used)
 {
     struct heap_node *node;
-
-    *used  = 0;
+    *used = 0;
     *total = m_heap_size;
     heap_lock();
     for(node = m_heap_head; node != NULL; node = node->next)

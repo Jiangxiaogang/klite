@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2019 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -27,8 +27,8 @@
 #ifndef __PORT_H
 #define __PORT_H
 
-void cpu_os_init(void);
-void cpu_os_start(void);
+void cpu_sys_init(void);
+void cpu_sys_idle(uint32_t time);
 void cpu_irq_enable(void);
 void cpu_irq_disable(void);
 void cpu_tcb_init(struct tcb *tcb);

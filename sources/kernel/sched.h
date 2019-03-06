@@ -32,7 +32,7 @@
 #define TCB_STATE_SLEEP      0x02
 #define TCB_STATE_WAIT       0x03
 #define TCB_STATE_TIMEDWAIT  0x04
-#define TCB_STATE_SUSPEND    0x80
+#define TCB_STATE_SUSPEND    0x05
 
 struct tcb_list
 {
@@ -49,41 +49,41 @@ struct tcb_node
 
 struct tcb
 {
-    uintptr_t        sp;
-    uintptr_t        sp_min;
-    uintptr_t        sp_max;
+    uintptr_t        stack;
+    uint32_t         stack_size;
     void           (*entry)(void*);
     void            *arg;
     int              prio;
     uint32_t         time;
     uint32_t         timeout;
     uint32_t         state;
-    struct tcb_node  nsched;
-    struct tcb_node  nwait;
-    struct tcb_list *lsched;
-    struct tcb_list *lwait;
+    struct tcb_list *list_sched;
+    struct tcb_list *list_wait;
+    struct tcb_node  node_sched;
+    struct tcb_node  node_wait;
 };
 
 extern struct tcb *sched_tcb_now;
 extern struct tcb *sched_tcb_new;
 
 void sched_init(void);
+void sched_idle(void);
 void sched_lock(void);
 void sched_unlock(void);
 void sched_switch(void);
 void sched_preempt(void);
 void sched_timetick(uint32_t time);
-
-void sched_tcb_reorder(struct tcb *tcb);
 void sched_tcb_init(struct tcb *tcb);
+void sched_tcb_sort(struct tcb *tcb);
 void sched_tcb_ready(struct tcb *tcb);
 void sched_tcb_suspend(struct tcb *tcb);
 void sched_tcb_resume(struct tcb *tcb);
+void sched_tcb_exit(struct tcb *tcb);
 void sched_tcb_sleep(struct tcb *tcb, uint32_t timeout);
 void sched_tcb_wait(struct tcb *tcb, struct tcb_list *list);
 void sched_tcb_timedwait(struct tcb *tcb, struct tcb_list *list, uint32_t timeout);
-void sched_tcb_wakeup(struct tcb *tcb);
 bool sched_tcb_wakeone(struct tcb_list *list);
 bool sched_tcb_wakeall(struct tcb_list *list);
+struct tcb* sched_tcb_clean(void);
 
 #endif

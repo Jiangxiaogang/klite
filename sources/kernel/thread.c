@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2019 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -26,31 +26,26 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
-#include "list.h"
-
-static struct tcb_list m_list_exited;
 
 thread_t thread_self(void)
 {
     return (thread_t)sched_tcb_now;
 }
 
-thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size)
+thread_t thread_create(void (*entry)(void*), void *arg, uint32_t stack_size)
 {
     struct tcb *tcb;
-    uint32_t tcb_size;
-    stack_size = stack_size ? stack_size : THREAD_STACK_DEFAULT;
-    tcb_size   = sizeof(struct tcb) + stack_size;
-    tcb        = heap_alloc(tcb_size);
+    stack_size = stack_size ? stack_size : 1024;
+    tcb = heap_alloc(sizeof(struct tcb) + stack_size);
     if(tcb != NULL)
     {
-        tcb->sp_min     = (uintptr_t)(tcb + 1);
-        tcb->sp_max     = tcb->sp_min + stack_size;
-        tcb->entry      = entry;
-        tcb->arg        = arg;
-        tcb->prio       = THREAD_PRIORITY_NORMAL;
-        tcb->nwait.tcb  = tcb;
-        tcb->nsched.tcb = tcb;
+        tcb->stack = (uintptr_t)(tcb + 1);
+        tcb->stack_size = stack_size;
+        tcb->entry = entry;
+        tcb->arg = arg;
+        tcb->prio = THREAD_PRIORITY_NORMAL;
+        tcb->node_wait.tcb = tcb;
+        tcb->node_sched.tcb = tcb;
         sched_tcb_init(tcb);
         sched_lock();
         sched_tcb_ready(tcb);
@@ -65,43 +60,32 @@ void thread_delete(thread_t thread)
     tcb = (struct tcb *)thread;
     sched_lock();
     sched_tcb_suspend(tcb);
-    heap_free(tcb);
     sched_unlock();
+    heap_free(tcb);
 }
 
-void thread_suspend(thread_t thread)
+void thread_suspend(void)
 {
-    struct tcb *tcb;
-    tcb = (struct tcb *)thread;
     sched_lock();
-    sched_tcb_suspend(tcb);
+    sched_tcb_suspend(sched_tcb_now);
     sched_unlock();
+    sched_switch();
 }
 
 void thread_resume(thread_t thread)
 {
-    struct tcb *tcb;
-    tcb = (struct tcb *)thread;
     sched_lock();
-    sched_tcb_resume(tcb);
+    sched_tcb_resume(thread);
     sched_unlock();
+    sched_preempt();
 }
 
-void thread_setprio(thread_t thread, int prio)
+void thread_sleep(uint32_t time)
 {
-    struct tcb *tcb;
-    tcb = (struct tcb *)thread;
     sched_lock();
-    tcb->prio = prio;
-    sched_tcb_reorder(tcb);
+    sched_tcb_sleep(sched_tcb_now, time);
     sched_unlock();
-}
-
-int thread_getprio(thread_t thread)
-{
-    struct tcb *tcb;
-    tcb = (struct tcb *)thread;
-    return tcb->prio;
+    sched_switch();
 }
 
 uint32_t thread_time(thread_t thread)
@@ -111,48 +95,40 @@ uint32_t thread_time(thread_t thread)
     return tcb->time;
 }
 
-void thread_sleep(uint32_t time)
-{
-    if(time != 0)
-    {
-        sched_lock();
-        sched_tcb_sleep(sched_tcb_now, time);
-        sched_unlock();
-        sched_switch();
-    }
-}
-
-void thread_yield(void)
-{
-    sched_lock();
-    sched_tcb_ready(sched_tcb_now);
-    sched_unlock();
-    sched_switch();
-}
-
 void thread_exit(void)
 {
     sched_lock();
-    list_append(&m_list_exited, &sched_tcb_now->nwait);
-    sched_tcb_now = NULL;
+    sched_tcb_exit(sched_tcb_now);
     sched_unlock();
     sched_switch();
 }
 
-void thread_cleanup(void)
+void thread_clean(void)
 {
-    struct tcb_node *node;
-    while(m_list_exited.head)
+    struct tcb *tcb;
+    while(1)
     {
-        node = m_list_exited.head;
         sched_lock();
-        list_remove(&m_list_exited, node);
+        tcb = sched_tcb_clean();
         sched_unlock();
-        heap_free(node->tcb);
+        if(tcb == NULL) break;
+        heap_free(tcb);
     }
 }
 
-void thread_init(void)
+void thread_setprio(thread_t thread, int prio)
 {
-    list_init(&m_list_exited);
+    struct tcb *tcb;
+    tcb = (struct tcb *)thread;
+    sched_lock();
+    tcb->prio = prio;
+    sched_tcb_sort(tcb);
+    sched_unlock();
+}
+
+int thread_getprio(thread_t thread)
+{
+    struct tcb *tcb;
+    tcb = (struct tcb *)thread;
+    return tcb->prio;
 }

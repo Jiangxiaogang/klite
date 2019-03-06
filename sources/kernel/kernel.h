@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2019 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -40,15 +40,17 @@ typedef void *event_t;
 ******************************************************************************/
 void     kernel_init(uint32_t heap_addr, uint32_t heap_size);
 void     kernel_start(void);
-void     kernel_timetick(uint32_t time);
+void     kernel_idle(void);
+uint32_t kernel_idletime(void);
 uint32_t kernel_time(void);
+void     kernel_timetick(uint32_t time);
 uint32_t kernel_version(void);
 
 /******************************************************************************
 * heap
 ******************************************************************************/
 void*    heap_alloc(uint32_t size);
-void     heap_free(void *p);
+void     heap_free(void *ptr);
 void     heap_usage(uint32_t *total, uint32_t *used);
 
 /******************************************************************************
@@ -62,20 +64,16 @@ void     heap_usage(uint32_t *total, uint32_t *used);
 #define THREAD_PRIORITY_LOWEST    (-2)
 #define THREAD_PRIORITY_IDLE      (-3)
 
-#define THREAD_STACK_DEFAULT      (1024)
-
-thread_t thread_create(void (*entry)(void *), void *arg, uint32_t stack_size);
+thread_t thread_create(void (*entry)(void*), void *arg, uint32_t stack_size);
 void     thread_delete(thread_t thread);
-void     thread_suspend(thread_t thread);
-void     thread_resume(thread_t thread);
 void     thread_setprio(thread_t thread, int prio);
 int      thread_getprio(thread_t thread);
+void     thread_suspend(void);
+void     thread_resume(thread_t thread);
 uint32_t thread_time(thread_t thread);
 void     thread_sleep(uint32_t time);
-void     thread_yield(void);
 void     thread_exit(void);
 thread_t thread_self(void);
-void     thread_cleanup(void);
 
 /******************************************************************************
 * mutex
@@ -91,11 +89,11 @@ bool     mutex_trylock(mutex_t mutex);
 ******************************************************************************/
 event_t  event_create(void);
 void     event_delete(event_t event);
-void     event_post(event_t event);
 void     event_wait(event_t event);
 bool     event_timedwait(event_t event, uint32_t timeout);
-bool     event_wakeone(event_t event);
-bool     event_wakeall(event_t event);
+bool     event_signal(event_t event);
+bool     event_broadcast(event_t event);
+void     event_post(event_t event);
 void     event_fire(event_t event);
 void     event_reset(event_t event);
 

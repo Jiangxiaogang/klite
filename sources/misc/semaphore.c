@@ -55,7 +55,7 @@ bool sem_timedwait(sem_t *sem, uint32_t timeout)
 void sem_post(sem_t *sem)
 {
     mutex_lock(sem->mutex);
-    if(!event_wakeone(sem->event))
+    if(!event_signal(sem->event))
     {
         sem->value++;
     }

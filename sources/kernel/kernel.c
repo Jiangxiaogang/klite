@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2015-2018 jiangxiaogang<kerndev@foxmail.com>
+* Copyright (c) 2015-2019 jiangxiaogang<kerndev@foxmail.com>
 *
 * This file is part of KLite distribution.
 *
@@ -26,29 +26,52 @@
 ******************************************************************************/
 #include "kernel.h"
 #include "sched.h"
-#include "port.h"
 
 #define MAKE_VERSION_CODE(a,b,c)    ((a<<24)|(b<<16)|(c))
-#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(3,2,2)
+#define KERNEL_VERSION_CODE         MAKE_VERSION_CODE(4,0,0)
 
 static uint32_t m_tick_count;
+static thread_t m_idle_thread;
 
-void heap_init(uint32_t addr, uint32_t size);
-void thread_init(void);
+extern void heap_init(uint32_t addr, uint32_t size);
+extern void thread_clean(void);
 
 void kernel_init(uint32_t heap_addr, uint32_t heap_size)
 {
     m_tick_count = 0;
-    cpu_os_init();
+    m_idle_thread = NULL;
     sched_init();
-    thread_init();
     heap_init(heap_addr, heap_size);
 }
 
 void kernel_start(void)
 {
-    cpu_os_start();
     sched_switch();
+}
+
+void kernel_idle(void)
+{
+    m_idle_thread = thread_self();
+    thread_setprio(m_idle_thread, THREAD_PRIORITY_IDLE - 1);
+    while(1)
+    {
+        thread_clean();
+        sched_idle();
+    }
+}
+
+uint32_t kernel_idletime(void)
+{
+    if(m_idle_thread != NULL)
+    {
+        return thread_time(m_idle_thread);
+    }
+    return 0;
+}
+
+uint32_t kernel_time(void)
+{
+    return m_tick_count;
 }
 
 void kernel_timetick(uint32_t time)
@@ -61,9 +84,4 @@ void kernel_timetick(uint32_t time)
 uint32_t kernel_version(void)
 {
     return KERNEL_VERSION_CODE;
-}
-
-uint32_t kernel_time(void)
-{
-    return m_tick_count;
 }
