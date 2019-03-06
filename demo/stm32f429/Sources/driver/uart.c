@@ -5,6 +5,7 @@
 * 2016.6.12
 ******************************************************************************/
 #include "stm32f4xx.h"
+#include "kernel.h"
 #include "gpio.h"
 #include "nvic.h"
 #include "uart.h"

@@ -185,12 +185,12 @@
             <RvdsVP>2</RvdsVP>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
-            <StupSel>8</StupSel>
+            <StupSel>16</StupSel>
             <useUlib>0</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
-            <RoSelD>3</RoSelD>
+            <RoSelD>4</RoSelD>
             <RwSelD>3</RwSelD>
             <CodeSel>0</CodeSel>
             <OptFeed>0</OptFeed>
@@ -202,8 +202,8 @@
             <Ro1Chk>0</Ro1Chk>
             <Ro2Chk>0</Ro2Chk>
             <Ro3Chk>0</Ro3Chk>
-            <Ir1Chk>1</Ir1Chk>
-            <Ir2Chk>0</Ir2Chk>
+            <Ir1Chk>0</Ir1Chk>
+            <Ir2Chk>1</Ir2Chk>
             <Ra1Chk>0</Ra1Chk>
             <Ra2Chk>0</Ra2Chk>
             <Ra3Chk>0</Ra3Chk>
@@ -272,13 +272,13 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8040000</StartAddress>
-                <Size>0x80000</Size>
+                <StartAddress>0x8000000</StartAddress>
+                <Size>0x40000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
-                <StartAddress>0x0</StartAddress>
-                <Size>0x0</Size>
+                <StartAddress>0x8040000</StartAddress>
+                <Size>0x40000</Size>
               </OCR_RVCT5>
               <OCR_RVCT6>
                 <Type>0</Type>
@@ -405,6 +405,11 @@
               <FileType>1</FileType>
               <FilePath>.\Sources\driver\uart.c</FilePath>
             </File>
+            <File>
+              <FileName>temp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Sources\driver\temp.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -476,19 +481,19 @@
           <GroupName>port</GroupName>
           <Files>
             <File>
-              <FileName>port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\sources\port\port.c</FilePath>
-            </File>
-            <File>
               <FileName>cpu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\sources\port\cortex-m4\cpu.c</FilePath>
+              <FilePath>..\..\sources\arch\cortex-m4\cpu.c</FilePath>
             </File>
             <File>
               <FileName>cpu_asm_keil.s</FileName>
               <FileType>2</FileType>
-              <FilePath>..\..\sources\port\cortex-m4\cpu_asm_keil.s</FilePath>
+              <FilePath>..\..\sources\arch\cortex-m4\cpu_asm_keil.s</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\sources\port\stm32f4xx.c</FilePath>
             </File>
           </Files>
         </Group>
