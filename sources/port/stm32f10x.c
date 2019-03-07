@@ -60,13 +60,13 @@ void cpu_sys_init(void)
 //系统空闲
 void cpu_sys_idle(uint32_t time)
 {
-    __disable_irq();
+    //__disable_irq();
     __wfi();
-    __enable_irq();
+    //__enable_irq();
 }
 
 //系统滴答
 void SysTick_Handler(void)
 {
-    kernel_time_tick(1);
+    kernel_timetick(1);
 }

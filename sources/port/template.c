@@ -41,5 +41,5 @@ void cpu_sys_idle(uint32_t time)
 //ÏµÍ³µÎ´ð
 // void SysTick_Handler(void)
 // {
-//     kernel_time_tick(1);
+//     kernel_timetick(1);
 // }
