@@ -36,7 +36,7 @@ KLite是免费开源软件,基于 MIT 协议开放源代码.
         这个函数被kernel_idle调用,为用户提供一个接口,用于实现系统休眠.
         
         void SysTick_Handler(void)
-        这个函数是平台相关的滴答时钟中断函数,需要在滴答时钟中断中调用kernel_timetick(n),n表示一次中断的毫秒数.
+        这个函数是平台相关的滴答时钟中断函数,需要在滴答时钟中断中调用kernel_time_tick(n),n表示一次中断的毫秒数.
 
 ## 3.在main函数里面添加初始化代码
     main函数的推荐写法如下:

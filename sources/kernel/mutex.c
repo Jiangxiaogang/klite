@@ -73,7 +73,7 @@ void mutex_unlock(mutex_t mutex)
     struct mutex *p_mutex;
     p_mutex = (struct mutex *)mutex;
     sched_lock();
-    if(sched_tcb_wakeone((struct tcb_list *)p_mutex))
+    if(sched_tcb_wake_one((struct tcb_list *)p_mutex))
     {
         sched_unlock();
         sched_preempt();

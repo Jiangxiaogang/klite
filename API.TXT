@@ -40,7 +40,7 @@ KLite API参考手册 V4.0
         此函数不会返回,所以在调用之前应该创建一个用户线程.
         
 -------------------------------------------------------------------------------
-    void kernel_timetick(uint32_t time)
+    void kernel_time_tick(uint32_t time)
     功能：
         内核时间计时
     参数：
@@ -80,7 +80,7 @@ KLite API参考手册 V4.0
         此函数不会返回,需要单独创建一个用户线程,并直接调用.
         
 ------------------------------------------------------------------------------- 
-    uint32_t kernel_idletime(void)
+    uint32_t kernel_idle_time(void)
     功能：
         返回内核从启动到现在空闲线程所运行的时间(毫秒).
     参数：
@@ -154,7 +154,7 @@ KLite API参考手册 V4.0
         如果想要结束当前线程请使用thread_exit()或直接使用return.
         
 -------------------------------------------------------------------------------
-    void thread_setprio(thread_t thread, int prio)
+    void thread_set_priority(thread_t thread, int prio)
     功能：
         设置线程优先级
     参数：
@@ -166,7 +166,7 @@ KLite API参考手册 V4.0
         线程优先级决定线程调度顺序,越高的优先级具有越高的实时性,线程默认优先级为0
         
 -------------------------------------------------------------------------------
-    int thread_getprio(thread_t thread)
+    int thread_get_priority(thread_t thread)
     功能：
         获取线程当前优先级
     参数：
@@ -263,7 +263,7 @@ KLite API参考手册 V4.0
         释放这个互斥锁.
         
 -------------------------------------------------------------------------------
-    bool mutex_trylock(mutex_t mutex)
+    bool mutex_try_lock(mutex_t mutex)
     功能：
         尝试将mutex指定的互斥锁标记为锁定状态
     参数：
@@ -338,7 +338,7 @@ KLite API参考手册 V4.0
         否则将会挂起当前线程，直到其它线程将event置为有信号状态。
         
 -------------------------------------------------------------------------------
-    bool event_timedwait(event_t event, uint32_t timeout)
+    bool event_timed_wait(event_t event, uint32_t timeout)
     功能：
         定时等待事件.
     参数：

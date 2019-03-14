@@ -21,7 +21,7 @@ struct timer_list
 static struct timer_list m_timer_list;
 
 //返回下一个定时器超时时间
-static uint32_t timer_timetick(uint32_t tick)
+static uint32_t timer_time_tick(uint32_t tick)
 {
     uint32_t next_time;
     timer_t *node;
@@ -59,11 +59,11 @@ static void timer_thread_entry(void *arg)
     {
         tick = kernel_time() - last;
         last = kernel_time();
-        timeout = timer_timetick(tick);
+        timeout = timer_time_tick(tick);
         tick = kernel_time() - last;
         if(timeout > tick)
         {
-            event_timedwait(m_timer_list.event, timeout - tick);
+            event_timed_wait(m_timer_list.event, timeout - tick);
         }
     }
 }
@@ -99,5 +99,5 @@ void timer_init(uint32_t stk_size, int prio)
     m_timer_list.mutex = mutex_create();
     m_timer_list.event = event_create();
     thread = thread_create(timer_thread_entry, 0, stk_size);
-    thread_setprio(thread, prio);
+    thread_set_priority(thread, prio);
 }

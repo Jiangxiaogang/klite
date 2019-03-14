@@ -81,6 +81,7 @@ static void usage_thread(void *arg)
 	uint32_t used;
 	uint32_t total;
 	uint32_t temp;
+    thread_set_priority(thread_self(), THREAD_PRIORITY_HIGH);
 	ver = kernel_version();
 	heap_usage(&total, &used);
 	LOG("KLite V%d.%d.%d\r\n", (ver>>24)&0xFF, (ver>>16)&0xFF, ver&0xFFFF);	
@@ -90,10 +91,10 @@ static void usage_thread(void *arg)
 	while(1)
 	{
 		tick = kernel_time();
-		idle = kernel_idletime();
+		idle = kernel_idle_time();
 		sleep(1000);
 		tick = kernel_time() - tick;
-		idle = kernel_idletime() - idle;
+		idle = kernel_idle_time() - idle;
 		heap_usage(&total, &used);
         temp = temp_read();
 		LOG("CPU:%2d%%, RAM:%d/%dB, TEMP:%d\r\n", 100*(tick-idle)/tick, used, total, temp);

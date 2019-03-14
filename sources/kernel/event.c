@@ -71,7 +71,7 @@ void event_wait(event_t event)
     sched_switch();
 }
 
-bool event_timedwait(event_t event, uint32_t timeout)
+bool event_timed_wait(event_t event, uint32_t timeout)
 {
     struct event *p_event;
     p_event = (struct event *)event;
@@ -87,7 +87,7 @@ bool event_timedwait(event_t event, uint32_t timeout)
         sched_unlock();
         return false;
     }
-    sched_tcb_timedwait(sched_tcb_now, (struct tcb_list *)p_event, timeout);
+    sched_tcb_timed_wait(sched_tcb_now, (struct tcb_list *)p_event, timeout);
     sched_unlock();
     sched_switch();
     return (sched_tcb_now->timeout != 0);
@@ -98,7 +98,7 @@ bool event_signal(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    if(sched_tcb_wakeone((struct tcb_list *)p_event))
+    if(sched_tcb_wake_one((struct tcb_list *)p_event))
     {
         sched_unlock();
 		sched_preempt();
@@ -113,7 +113,7 @@ bool event_broadcast(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    if(sched_tcb_wakeall((struct tcb_list *)p_event))
+    if(sched_tcb_wake_all((struct tcb_list *)p_event))
     {
         sched_unlock();
 		sched_preempt();
@@ -128,7 +128,7 @@ void event_post(event_t event)
     struct event *p_event;
     p_event = (struct event *)event;
     sched_lock();
-    if(sched_tcb_wakeone((struct tcb_list *)p_event))
+    if(sched_tcb_wake_one((struct tcb_list *)p_event))
     {
         sched_unlock();
 		sched_preempt();
@@ -144,7 +144,7 @@ void event_fire(event_t event)
     p_event = (struct event *)event;
     sched_lock();
     p_event->fire |= EVENT_FIRE_KEEP;
-    sched_tcb_wakeall((struct tcb_list *)p_event);
+    sched_tcb_wake_all((struct tcb_list *)p_event);
     sched_unlock();
 	sched_preempt();
 }

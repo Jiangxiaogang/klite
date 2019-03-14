@@ -48,7 +48,7 @@ bool sem_timedwait(sem_t *sem, uint32_t timeout)
     else
     {
         mutex_unlock(sem->mutex);
-        return event_timedwait(sem->event, timeout);
+        return event_timed_wait(sem->event, timeout);
     }
 }
 

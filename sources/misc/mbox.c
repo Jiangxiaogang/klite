@@ -41,10 +41,10 @@ void mbox_wait(mbox_t *mbox, uint32_t *pdata)
     *pdata = mbox->data;
 }
 
-bool mbox_timedwait(mbox_t *mbox, uint32_t *pdata, uint32_t timeout)
+bool mbox_timed_wait(mbox_t *mbox, uint32_t *pdata, uint32_t timeout)
 {
     bool ret;
-    ret = event_timedwait(mbox->event, timeout);
+    ret = event_timed_wait(mbox->event, timeout);
     *pdata = mbox->data;
     return ret;
 }

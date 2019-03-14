@@ -41,9 +41,9 @@ typedef void *event_t;
 void     kernel_init(uint32_t heap_addr, uint32_t heap_size);
 void     kernel_start(void);
 void     kernel_idle(void);
-uint32_t kernel_idletime(void);
+uint32_t kernel_idle_time(void);
 uint32_t kernel_time(void);
-void     kernel_timetick(uint32_t time);
+void     kernel_time_tick(uint32_t time);
 uint32_t kernel_version(void);
 
 /******************************************************************************
@@ -66,14 +66,14 @@ void     heap_usage(uint32_t *total, uint32_t *used);
 
 thread_t thread_create(void (*entry)(void*), void *arg, uint32_t stack_size);
 void     thread_delete(thread_t thread);
-void     thread_setprio(thread_t thread, int prio);
-int      thread_getprio(thread_t thread);
 void     thread_suspend(void);
 void     thread_resume(thread_t thread);
-uint32_t thread_time(thread_t thread);
 void     thread_sleep(uint32_t time);
 void     thread_exit(void);
 thread_t thread_self(void);
+uint32_t thread_time(thread_t thread);
+void     thread_set_priority(thread_t thread, int prio);
+int      thread_get_priority(thread_t thread);
 
 /******************************************************************************
 * mutex
@@ -82,20 +82,20 @@ mutex_t  mutex_create(void);
 void     mutex_delete(mutex_t mutex);
 void     mutex_lock(mutex_t mutex);
 void     mutex_unlock(mutex_t mutex);
-bool     mutex_trylock(mutex_t mutex);
+bool     mutex_try_lock(mutex_t mutex);
 
 /******************************************************************************
 * event
 ******************************************************************************/
 event_t  event_create(void);
 void     event_delete(event_t event);
-void     event_wait(event_t event);
-bool     event_timedwait(event_t event, uint32_t timeout);
 bool     event_signal(event_t event);
 bool     event_broadcast(event_t event);
 void     event_post(event_t event);
 void     event_fire(event_t event);
 void     event_reset(event_t event);
+void     event_wait(event_t event);
+bool     event_timed_wait(event_t event, uint32_t timeout);
 
 /******************************************************************************
 * alias

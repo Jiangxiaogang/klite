@@ -34,7 +34,8 @@ struct tcb             *sched_tcb_new;
 static struct tcb_list  sched_list_sleep;
 static struct tcb_list  sched_list_ready;
 static struct tcb_list  sched_list_exited;
-static uint32_t         sched_idle_timeout;
+static uint32_t         sched_time_sleep;
+static uint32_t         sched_time_pend;
 
 static void list_sorted_insert(struct tcb_list *list, struct tcb_node *node)
 {
@@ -112,6 +113,7 @@ void sched_tcb_sleep(struct tcb *tcb, uint32_t timeout)
     tcb->timeout = timeout;
     tcb->list_sched = &sched_list_sleep;
     list_append(&sched_list_sleep, &tcb->node_sched);
+    sched_time_sleep = (sched_time_sleep < timeout) ? sched_time_sleep : timeout;
 }
 
 void sched_tcb_suspend(struct tcb *tcb)
@@ -162,7 +164,7 @@ void sched_tcb_wait(struct tcb *tcb, struct tcb_list *list)
     list_sorted_insert(list, &tcb->node_wait);
 }
 
-void sched_tcb_timedwait(struct tcb *tcb, struct tcb_list *list, uint32_t timeout)
+void sched_tcb_timed_wait(struct tcb *tcb, struct tcb_list *list, uint32_t timeout)
 {
     tcb->state = TCB_STATE_TIMEDWAIT;
     tcb->timeout = timeout;
@@ -170,6 +172,7 @@ void sched_tcb_timedwait(struct tcb *tcb, struct tcb_list *list, uint32_t timeou
     tcb->list_sched = &sched_list_sleep;
     list_sorted_insert(list, &tcb->node_wait);
     list_append(&sched_list_sleep, &tcb->node_sched);
+    sched_time_sleep = (sched_time_sleep < timeout) ? sched_time_sleep : timeout;
 }
 
 void sched_tcb_wake(struct tcb *tcb)
@@ -189,7 +192,7 @@ void sched_tcb_wake(struct tcb *tcb)
     list_sorted_insert(&sched_list_ready, &tcb->node_sched);
 }
 
-bool sched_tcb_wakeone(struct tcb_list *list)
+bool sched_tcb_wake_one(struct tcb_list *list)
 {
     struct tcb *tcb;
     if(list->head)
@@ -201,7 +204,7 @@ bool sched_tcb_wakeone(struct tcb_list *list)
     return false;
 }
 
-bool sched_tcb_wakeall(struct tcb_list *list)
+bool sched_tcb_wake_all(struct tcb_list *list)
 {
     struct tcb *tcb;
     if(list->head)
@@ -216,7 +219,7 @@ bool sched_tcb_wakeall(struct tcb_list *list)
     return false;
 }
 
-void sched_timetick(uint32_t time)
+void sched_time_tick(uint32_t time)
 {
     struct tcb *tcb;
     struct tcb_node *node;
@@ -226,7 +229,16 @@ void sched_timetick(uint32_t time)
     {
         sched_tcb_now->time += time;
     }
-    sched_idle_timeout = -1U;
+    if(sched_time_sleep > time)
+    {
+        sched_time_sleep -= time;
+        sched_time_pend += time;
+        cpu_irq_enable();
+        return;
+    }
+    time += sched_time_pend;
+    sched_time_pend = 0;
+    sched_time_sleep = -1U;
     for(node = sched_list_sleep.head; node != NULL; node = next)
     {
         next = node->next;
@@ -234,7 +246,7 @@ void sched_timetick(uint32_t time)
         if(tcb->timeout > time)
         {
             tcb->timeout -= time;
-            sched_idle_timeout = (sched_idle_timeout < tcb->timeout) ? sched_idle_timeout : tcb->timeout;
+            sched_time_sleep = (sched_time_sleep < tcb->timeout) ? sched_time_sleep : tcb->timeout;
         }
         else
         {
@@ -294,14 +306,15 @@ void sched_unlock(void)
 
 void sched_idle(void)
 {
-    cpu_sys_idle(sched_idle_timeout);
+    cpu_sys_idle(sched_time_sleep);
 }
 
 void sched_init(void)
 {
     sched_tcb_now = NULL;
     sched_tcb_new = NULL;
-    sched_idle_timeout = -1U;
+    sched_time_pend = 0;
+    sched_time_sleep = -1U;
     list_init(&sched_list_ready);
     list_init(&sched_list_sleep);
     list_init(&sched_list_exited);

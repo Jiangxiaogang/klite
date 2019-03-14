@@ -116,7 +116,7 @@ void thread_clean(void)
     }
 }
 
-void thread_setprio(thread_t thread, int prio)
+void thread_set_priority(thread_t thread, int prio)
 {
     struct tcb *tcb;
     tcb = (struct tcb *)thread;
@@ -126,7 +126,7 @@ void thread_setprio(thread_t thread, int prio)
     sched_unlock();
 }
 
-int thread_getprio(thread_t thread)
+int thread_get_priority(thread_t thread)
 {
     struct tcb *tcb;
     tcb = (struct tcb *)thread;
