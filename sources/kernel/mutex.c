@@ -85,7 +85,7 @@ void mutex_unlock(mutex_t mutex)
     }
 }
 
-bool mutex_trylock(mutex_t mutex)
+bool mutex_try_lock(mutex_t mutex)
 {
     struct mutex *p_mutex;
     p_mutex = (struct mutex *)mutex;
