@@ -142,6 +142,7 @@ void sched_tcb_resume(struct tcb *tcb)
 void sched_tcb_exit(struct tcb *tcb)
 {
     tcb->state = TCB_STATE_SUSPEND;
+    tcb->list_sched = &sched_list_exited;
     list_append(&sched_list_exited, &tcb->node_sched);
 }
 
